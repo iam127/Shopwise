@@ -16,7 +16,18 @@ app.get('/', (req, res) => {
 });
 
 const authRoutes = require('./src/routes/auth.routes');
+const categoriasRoutes = require('./src/routes/categorias.routes');
+const productosRoutes = require('./src/routes/productos.routes');
+const carritoRoutes = require('./src/routes/carrito.routes');
+const pedidosRoutes = require('./src/routes/pedidos.routes');
+const pagosRoutes = require('./src/routes/pagos.routes');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/categorias', categoriasRoutes);
+app.use('/api/productos', productosRoutes);
+app.use('/api/carrito', carritoRoutes);
+app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/pagos', pagosRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
