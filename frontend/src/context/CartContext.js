@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { useAuth } from './AuthContext';
+import toast from 'react-hot-toast';
 
 const CartContext = createContext();
 
@@ -24,18 +25,33 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
   const addToCart = async (producto_id, cantidad = 1) => {
-    await api.post('/carrito/add', { producto_id, cantidad });
-    fetchCarrito();
+    try {
+      await api.post('/carrito/add', { producto_id, cantidad });
+      fetchCarrito();
+      toast.success('Producto agregado al carrito');
+    } catch (err) {
+      toast.error('Error al agregar al carrito');
+    }
   };
 
   const removeFromCart = async (item_id) => {
-    await api.delete(`/carrito/item/${item_id}`);
-    fetchCarrito();
+    try {
+      await api.delete(`/carrito/item/${item_id}`);
+      fetchCarrito();
+      toast.success('Producto eliminado del carrito');
+    } catch (err) {
+      toast.error('Error al eliminar del carrito');
+    }
   };
 
   const clearCart = async () => {
-    await api.delete('/carrito/clear');
-    setCarrito([]);
+    try {
+      await api.delete('/carrito/clear');
+      setCarrito([]);
+      toast.success('Carrito vaciado');
+    } catch (err) {
+      toast.error('Error al vaciar el carrito');
+    }
   };
 
   const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);

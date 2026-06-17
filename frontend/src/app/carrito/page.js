@@ -13,6 +13,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import toast from 'react-hot-toast';
 
 export default function CarritoPage() {
   const { carrito, removeFromCart, clearCart, total, fetchCarrito } = useCart();
@@ -21,19 +22,25 @@ export default function CarritoPage() {
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
 
-  const handleCheckout = async () => {
+    const handleCheckout = async () => {
     setLoading(true);
     try {
-      const pedidoRes = await api.post('/pedidos');
-      const pedido_id = pedidoRes.data.pedido.id;
-      const pagoRes = await api.post('/pagos', { pedido_id, metodo: 'tarjeta' });
-      setResultado(pagoRes.data.pago.estado);
-      fetchCarrito();
+        const pedidoRes = await api.post('/pedidos');
+        const pedido_id = pedidoRes.data.pedido.id;
+        const pagoRes = await api.post('/pagos', { pedido_id, metodo: 'tarjeta' });
+        setResultado(pagoRes.data.pago.estado);
+        if (pagoRes.data.pago.estado === 'aprobado') {
+        toast.success('¡Pago aprobado! Gracias por tu compra');
+        } else {
+        toast.error('Pago rechazado. Intenta de nuevo');
+        }
+        fetchCarrito();
     } catch (err) {
-      setResultado('error');
+        setResultado('error');
+        toast.error('Error al procesar el pedido');
     }
     setLoading(false);
-  };
+    };
 
   if (!user) {
     return (

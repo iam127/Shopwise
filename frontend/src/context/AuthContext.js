@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import api from '@/lib/axios';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -23,11 +24,13 @@ export const AuthProvider = ({ children }) => {
     Cookies.set('token', res.data.token, { expires: 1 });
     Cookies.set('user', JSON.stringify(res.data.user), { expires: 1 });
     setUser(res.data.user);
+    toast.success(`Bienvenido, ${res.data.user.nombre.split(' ')[0]}!`);
     return res.data;
   };
 
   const register = async (nombre, email, password) => {
     const res = await api.post('/auth/register', { nombre, email, password });
+    toast.success('Cuenta creada exitosamente');
     return res.data;
   };
 
@@ -35,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove('token');
     Cookies.remove('user');
     setUser(null);
+    toast.success('Sesión cerrada');
   };
 
   return (
