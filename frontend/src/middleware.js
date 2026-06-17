@@ -5,27 +5,20 @@ export function middleware(request) {
   const user = request.cookies.get('user')?.value;
   const { pathname } = request.nextUrl;
 
-  // Rutas públicas (no requieren login)
-  const publicRoutes = ['/login', '/register'];
-
-  // Rutas de admin
+  const publicRoutes = ['/login', '/register', '/', '/categorias', '/explorar', '/nosotros', '/contacto'];
   const adminRoutes = ['/admin'];
+  const protectedRoutes = ['/productos', '/carrito', '/pedidos', '/favoritos', '/perfil'];
 
-  // Si no tiene token y quiere entrar a ruta protegida
-  if (!token && !publicRoutes.includes(pathname)) {
+  if (!token && protectedRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Si tiene token y quiere entrar a login/register, redirigir a productos
-  if (token && publicRoutes.includes(pathname)) {
+  if (token && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/productos', request.url));
   }
 
-  // Si quiere entrar a rutas de admin, verificar rol
   if (adminRoutes.some((route) => pathname.startsWith(route))) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+    if (!user) return NextResponse.redirect(new URL('/login', request.url));
     try {
       const userData = JSON.parse(user);
       if (userData.rol !== 'admin') {
@@ -41,6 +34,6 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|bg-auth.png|bg-login.png).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|bg-auth.png|bg-login.png|hero-banner.png).*)',
   ],
 };
