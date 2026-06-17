@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -17,6 +18,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 export default function ProductoDetallePage({ params }) {
   const { id } = use(params);
@@ -27,6 +30,7 @@ export default function ProductoDetallePage({ params }) {
   const [loading, setLoading] = useState(true);
   const [agregado, setAgregado] = useState(false);
   const [cantidad, setCantidad] = useState(1);
+  const [isFavorito, setIsFavorito] = useState(false);
 
   useEffect(() => {
     api.get(`/productos/${id}`)
@@ -39,10 +43,34 @@ export default function ProductoDetallePage({ params }) {
       });
   }, [id]);
 
+  useEffect(() => {
+    if (producto) {
+      api.get(`/favoritos/check/${producto.id}`)
+        .then((res) => setIsFavorito(res.data.isFavorito))
+        .catch(() => {});
+    }
+  }, [producto]);
+
   const handleAddToCart = () => {
     addToCart(producto.id, cantidad);
     setAgregado(true);
     setTimeout(() => setAgregado(false), 2000);
+  };
+
+  const toggleFavorito = async () => {
+    try {
+      if (isFavorito) {
+        await api.delete(`/favoritos/${producto.id}`);
+        setIsFavorito(false);
+        toast.success('Eliminado de favoritos');
+      } else {
+        await api.post('/favoritos', { producto_id: producto.id });
+        setIsFavorito(true);
+        toast.success('Agregado a favoritos ❤️');
+      }
+    } catch (err) {
+      toast.error('Error al actualizar favoritos');
+    }
   };
 
   const handleLogout = () => {
@@ -67,6 +95,9 @@ export default function ProductoDetallePage({ params }) {
             <Image src="/logo.png" alt="Shopwise" width={140} height={35} style={{ objectFit: 'contain' }} />
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/favoritos" className="flex items-center gap-1 text-gray-600 hover:text-red-500 transition-colors">
+              <FavoriteIcon style={{ fontSize: 22 }} />
+            </Link>
             <Link href="/carrito" className="relative flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
               <ShoppingCartIcon style={{ fontSize: 22 }} />
               {carrito.length > 0 && (
@@ -112,7 +143,6 @@ export default function ProductoDetallePage({ params }) {
                   src={producto.imagen_url}
                   alt={producto.nombre}
                   className="w-full h-full object-contain"
-
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-8xl">📦</div>
@@ -134,9 +164,24 @@ export default function ProductoDetallePage({ params }) {
           <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <LocalOfferIcon className="text-blue-400" style={{ fontSize: 16 }} />
-                <span className="text-blue-500 text-xs font-bold uppercase tracking-widest">{producto.categoria}</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <LocalOfferIcon className="text-blue-400" style={{ fontSize: 16 }} />
+                  <span className="text-blue-500 text-xs font-bold uppercase tracking-widest">{producto.categoria}</span>
+                </div>
+                <button
+                  onClick={toggleFavorito}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all ${
+                    isFavorito
+                      ? 'bg-red-50 border-red-300 text-red-500'
+                      : 'bg-white border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-400'
+                  }`}
+                >
+                  {isFavorito
+                    ? <FavoriteIcon style={{ fontSize: 20 }} />
+                    : <FavoriteBorderIcon style={{ fontSize: 20 }} />
+                  }
+                </button>
               </div>
               <h1 className="text-3xl font-extrabold text-gray-800 mb-3">{producto.nombre}</h1>
 
@@ -195,11 +240,11 @@ export default function ProductoDetallePage({ params }) {
               )}
 
               {/* Botones */}
-              <div className="space-y-3">
+              <div className="flex gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={producto.stock === 0}
-                  className={`w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all text-base ${
+                  className={`flex-1 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all text-base ${
                     agregado
                       ? 'bg-green-500 text-white scale-95'
                       : producto.stock === 0
@@ -210,7 +255,7 @@ export default function ProductoDetallePage({ params }) {
                   {agregado ? (
                     <>
                       <CheckCircleIcon style={{ fontSize: 22 }} />
-                      ¡Agregado al carrito!
+                      ¡Agregado!
                     </>
                   ) : (
                     <>
@@ -219,14 +264,24 @@ export default function ProductoDetallePage({ params }) {
                     </>
                   )}
                 </button>
-                <Link
-                  href="/carrito"
-                  className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors"
+                <button
+                  onClick={toggleFavorito}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all ${
+                    isFavorito
+                      ? 'bg-red-50 border-red-300 text-red-500'
+                      : 'bg-white border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-400'
+                  }`}
                 >
-                  <ShoppingCartIcon style={{ fontSize: 20 }} />
-                  Ver carrito
-                </Link>
+                  {isFavorito ? <FavoriteIcon style={{ fontSize: 24 }} /> : <FavoriteBorderIcon style={{ fontSize: 24 }} />}
+                </button>
               </div>
+              <Link
+                href="/carrito"
+                className="mt-3 w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <ShoppingCartIcon style={{ fontSize: 20 }} />
+                Ver carrito
+              </Link>
             </div>
 
             {/* Beneficios */}
