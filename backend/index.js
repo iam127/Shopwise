@@ -22,6 +22,7 @@ const carritoRoutes = require('./src/routes/carrito.routes');
 const pedidosRoutes = require('./src/routes/pedidos.routes');
 const pagosRoutes = require('./src/routes/pagos.routes');
 const estadisticasRoutes = require('./src/routes/estadisticas.routes');
+const favoritosRoutes = require('./src/routes/favoritos.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categorias', categoriasRoutes);
@@ -30,6 +31,7 @@ app.use('/api/carrito', carritoRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagos', pagosRoutes);
 app.use('/api/estadisticas', estadisticasRoutes);
+app.use('/api/favoritos', favoritosRoutes);
 
 
 app.listen(PORT, () => {
