@@ -6,11 +6,13 @@ import api from '@/lib/axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Footer from '@/components/Footer';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from '@mui/icons-material/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export default function ProductosPage() {
   const { addToCart, carrito } = useCart();
@@ -62,7 +64,7 @@ export default function ProductosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
       <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100 h-14">
         <div className="max-w-7xl mx-auto px-6 h-full flex justify-between items-center gap-4">
@@ -85,7 +87,6 @@ export default function ProductosPage() {
               }}
               onFocus={() => setShowSugerencias(true)}
             />
-            {/* Sugerencias */}
             {showSugerencias && busqueda.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden z-50">
                 {sugerencias.length > 0 ? (
@@ -118,6 +119,9 @@ export default function ProductosPage() {
 
           {/* Acciones */}
           <div className="flex items-center gap-4 min-w-fit">
+            <Link href="/favoritos" className="flex items-center gap-1 text-gray-600 hover:text-red-500 transition-colors">
+              <FavoriteIcon style={{ fontSize: 20 }} />
+            </Link>
             <Link href="/carrito" className="relative flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
               <ShoppingCartIcon style={{ fontSize: 22 }} />
               {carrito.length > 0 && (
@@ -130,12 +134,12 @@ export default function ProductosPage() {
               <ListAltIcon style={{ fontSize: 18 }} />
               <span>Mis pedidos</span>
             </Link>
-            <div className="flex items-center gap-2">
+            <Link href="/perfil" className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
                 {user?.nombre?.charAt(0).toUpperCase()}
               </div>
               <span className="text-sm text-gray-700 font-medium hidden xl:block">{user?.nombre}</span>
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 font-medium transition-colors"
@@ -155,7 +159,7 @@ export default function ProductosPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
         {/* Filtros */}
         <div className="flex gap-3 mb-8 flex-wrap">
           <button
@@ -249,6 +253,8 @@ export default function ProductosPage() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }
