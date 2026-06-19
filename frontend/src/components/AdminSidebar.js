@@ -8,6 +8,7 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import CategoryIcon from '@mui/icons-material/Category';
 import EmailIcon from '@mui/icons-material/Email';
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import LogoutIcon from '@mui/icons-material/Logout';
 
@@ -20,6 +21,7 @@ export default function AdminSidebar() {
     { href: '/admin/estadisticas', label: 'Estadisticas', icon: <DashboardIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/productos', label: 'Productos', icon: <Inventory2Icon style={{ fontSize: 20 }} /> },
     { href: '/admin/categorias', label: 'Categorias', icon: <CategoryIcon style={{ fontSize: 20 }} /> },
+    { href: '/admin/pedidos', label: 'Pedidos', icon: <ShoppingBagIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/mensajes', label: 'Mensajes', icon: <EmailIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/newsletter', label: 'Newsletter', icon: <MarkEmailUnreadIcon style={{ fontSize: 20 }} /> },
   ];
@@ -48,7 +50,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Links */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {links.map((link) => (
           <Link
             key={link.href}
