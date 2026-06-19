@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { enviarMensaje, listarMensajes, marcarLeido } = require('../controllers/contacto.controller');
-const { verifyToken, isAdmin } = require('../middlewares/auth.middleware');
+const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
 router.post('/', enviarMensaje);
-router.get('/', verifyToken, isAdmin, listarMensajes);
-router.put('/:id/leido', verifyToken, isAdmin, marcarLeido);
+router.get('/', verifyToken, verifyAdmin, listarMensajes);
+router.put('/:id/leido', verifyToken, verifyAdmin, marcarLeido);
 
 module.exports = router;
