@@ -32,6 +32,9 @@ const login = async (req, res) => {
     if (!validPassword) {
       return res.status(400).json({ message: 'Email o contraseña incorrectos' });
     }
+    if (user.activo === false) {
+      return res.status(403).json({ message: 'Tu cuenta ha sido desactivada. Contacta al soporte.' });
+    }
     const token = jwt.sign(
       { id: user.id, rol: user.rol },
       process.env.JWT_SECRET,
