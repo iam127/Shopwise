@@ -29,16 +29,17 @@ export default function AdminSidebar() {
   return (
     <aside className="w-64 bg-gray-900 min-h-screen flex flex-col fixed left-0 top-0 z-40">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-800">
+    <div className="px-5 py-6 border-b border-gray-800 flex flex-col items-center overflow-hidden">
+    <div style={{ width: '160px', height: '50px', position: 'relative', transform: 'scale(1.8)' }}>
         <Image
-          src="/logo.png"
-          alt="Shopwise"
-          width={140}
-          height={35}
-          style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+        src="/logo.png"
+        alt="Shopwise"
+        fill
+        style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
         />
-        <p className="text-gray-500 text-xs mt-2 uppercase tracking-widest font-semibold">Panel Admin</p>
-      </div>
+    </div>
+    <p className="text-gray-500 uppercase tracking-widest font-semibold mt-3" style={{ fontSize: '10px' }}>Panel Admin</p>
+    </div>
 
       {/* Links */}
       <nav className="flex-1 p-4 space-y-1">
