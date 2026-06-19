@@ -21,6 +21,7 @@ export default function HomePage() {
   const [tiempo, setTiempo] = useState({ horas: 5, minutos: 30, segundos: 0 });
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [anuncioVisible, setAnuncioVisible] = useState(true);
 
   useEffect(() => {
@@ -28,17 +29,52 @@ export default function HomePage() {
     api.get('/categorias').then((res) => setCategorias(res.data)).catch(() => {});
   }, []);
 
+  // Contador de oferta persistente con localStorage
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTiempo((prev) => {
-        if (prev.segundos > 0) return { ...prev, segundos: prev.segundos - 1 };
-        if (prev.minutos > 0) return { ...prev, minutos: prev.minutos - 1, segundos: 59 };
-        if (prev.horas > 0) return { horas: prev.horas - 1, minutos: 59, segundos: 59 };
-        return prev;
-      });
-    }, 1000);
+    const OFERTA_DURACION = 5 * 60 * 60 * 1000 + 30 * 60 * 1000; // 5h 30m en ms
+    let finOferta = localStorage.getItem('finOferta');
+
+    if (!finOferta || Date.now() > parseInt(finOferta)) {
+      finOferta = Date.now() + OFERTA_DURACION;
+      localStorage.setItem('finOferta', finOferta);
+    } else {
+      finOferta = parseInt(finOferta);
+    }
+
+    const actualizar = () => {
+      const restante = finOferta - Date.now();
+      if (restante <= 0) {
+        const nuevoFin = Date.now() + OFERTA_DURACION;
+        localStorage.setItem('finOferta', nuevoFin);
+        setTiempo({ horas: 5, minutos: 30, segundos: 0 });
+        return;
+      }
+      const horas = Math.floor(restante / (1000 * 60 * 60));
+      const minutos = Math.floor((restante % (1000 * 60 * 60)) / (1000 * 60));
+      const segundos = Math.floor((restante % (1000 * 60)) / 1000);
+      setTiempo({ horas, minutos, segundos });
+    };
+
+    actualizar();
+    const timer = setInterval(actualizar, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleNewsletter = async () => {
+    if (!email) return;
+    setNewsletterLoading(true);
+    try {
+      await api.post('/newsletter', { email });
+      setNewsletterEnviado(true);
+      setEmail('');
+    } catch (error) {
+      if (error.response?.data?.message === 'Este email ya esta suscrito') {
+        setNewsletterEnviado(true);
+      }
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   const pad = (n) => String(n).padStart(2, '0');
 
@@ -359,12 +395,14 @@ export default function HomePage() {
                 className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNewsletter()}
               />
               <button
-                onClick={() => { if (email) setNewsletterEnviado(true); }}
-                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors whitespace-nowrap"
+                onClick={handleNewsletter}
+                disabled={newsletterLoading}
+                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 disabled:bg-blue-100 transition-colors whitespace-nowrap"
               >
-                Suscribirme
+                {newsletterLoading ? 'Enviando...' : 'Suscribirme'}
               </button>
             </div>
           )}

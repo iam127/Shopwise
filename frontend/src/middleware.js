@@ -5,8 +5,7 @@ export function middleware(request) {
   const user = request.cookies.get('user')?.value;
   const { pathname } = request.nextUrl;
 
-  const publicRoutes = ['/login', '/register', '/', '/categorias', '/explorar', '/nosotros', '/contacto'];
-  const adminRoutes = ['/admin'];
+  const publicRoutes = ['/login', '/register', '/', '/categorias', '/explorar', '/nosotros', '/contacto', '/terminos', '/privacidad'];  const adminRoutes = ['/admin'];
   const protectedRoutes = ['/productos', '/carrito', '/pedidos', '/favoritos', '/perfil'];
 
   if (!token && protectedRoutes.some((route) => pathname.startsWith(route))) {

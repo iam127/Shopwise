@@ -17,6 +17,8 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import api from '@/lib/axios';
+import toast from 'react-hot-toast';
 
 export default function ContactoPage() {
   const [formEnviado, setFormEnviado] = useState(false);
@@ -25,9 +27,17 @@ export default function ContactoPage() {
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormEnviado(true);
+    setLoading(true);
+    try {
+      await api.post('/contacto', form);
+      setFormEnviado(true);
+    } catch (error) {
+      toast.error('Error al enviar el mensaje. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const faqs = [

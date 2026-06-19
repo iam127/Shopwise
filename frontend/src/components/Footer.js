@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import api from '@/lib/axios';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -14,6 +15,27 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [enviado, setEnviado] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleNewsletter = async () => {
+    if (!email) return;
+    setLoading(true);
+    setError('');
+    try {
+      await api.post('/newsletter', { email });
+      setEnviado(true);
+      setEmail('');
+    } catch (err) {
+      if (err.response?.data?.message === 'Este email ya esta suscrito') {
+        setEnviado(true);
+      } else {
+        setError('Error al suscribirse. Intenta de nuevo.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <footer className="bg-gray-900 text-gray-400">
@@ -32,21 +54,26 @@ export default function Footer() {
                 <span className="text-sm font-semibold">Gracias por suscribirte!</span>
               </div>
             ) : (
-              <div className="flex gap-2 w-full md:w-auto">
-                <input
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="flex-1 md:w-64 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <button
-                  onClick={() => { if (email) setEnviado(true); }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
-                >
-                  Suscribirme
-                  <ArrowForwardIcon style={{ fontSize: 16 }} />
-                </button>
+              <div className="flex flex-col gap-2 w-full md:w-auto">
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="tu@email.com"
+                    className="flex-1 md:w-64 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleNewsletter()}
+                  />
+                  <button
+                    onClick={handleNewsletter}
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    {loading ? 'Enviando...' : 'Suscribirme'}
+                    <ArrowForwardIcon style={{ fontSize: 16 }} />
+                  </button>
+                </div>
+                {error && <p className="text-red-400 text-xs">{error}</p>}
               </div>
             )}
           </div>
@@ -179,8 +206,8 @@ export default function Footer() {
                 ))}
               </div>
               <div className="flex gap-4 text-xs text-gray-500">
-                <span className="hover:text-white cursor-pointer transition-colors">Terminos</span>
-                <span className="hover:text-white cursor-pointer transition-colors">Privacidad</span>
+                <Link href="/terminos" className="hover:text-white transition-colors">Terminos</Link>
+                <Link href="/privacidad" className="hover:text-white transition-colors">Privacidad</Link>
               </div>
             </div>
           </div>
