@@ -3,9 +3,14 @@ const pool = require('../db/db');
 const getProductos = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.*, c.nombre AS categoria 
+      SELECT p.*, c.nombre AS categoria,
+        COALESCE(ROUND(AVG(r.rating), 1), 0) AS rating_promedio,
+        COUNT(r.id) AS rating_total
       FROM productos p 
       LEFT JOIN categorias c ON p.categoria_id = c.id
+      LEFT JOIN ratings r ON r.producto_id = p.id
+      GROUP BY p.id, c.nombre
+      ORDER BY p.id
     `);
     res.json(result.rows);
   } catch (err) {
@@ -17,10 +22,14 @@ const getProductoById = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(`
-      SELECT p.*, c.nombre AS categoria 
+      SELECT p.*, c.nombre AS categoria,
+        COALESCE(ROUND(AVG(r.rating), 1), 0) AS rating_promedio,
+        COUNT(r.id) AS rating_total
       FROM productos p 
       LEFT JOIN categorias c ON p.categoria_id = c.id
+      LEFT JOIN ratings r ON r.producto_id = p.id
       WHERE p.id = $1
+      GROUP BY p.id, c.nombre
     `, [id]);
     if (result.rows.length === 0) return res.status(404).json({ message: 'Producto no encontrado' });
     res.json(result.rows[0]);
