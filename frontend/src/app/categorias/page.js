@@ -13,6 +13,7 @@ import LaptopIcon from '@mui/icons-material/Laptop';
 import CheckroomIcon from '@mui/icons-material/Checkroom';
 import HomeIcon from '@mui/icons-material/Home';
 import CloseIcon from '@mui/icons-material/Close';
+import RatingStars from '@/components/RatingStars';
 
 export default function CategoriasPage() {
   const [categorias, setCategorias] = useState([]);
@@ -223,8 +224,8 @@ export default function CategoriasPage() {
                               </div>
                               <div className="p-3">
                                 <h5 className="font-bold text-gray-800 text-sm line-clamp-1 mb-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h5>
-                                <div className="flex items-center gap-1 mb-1">
-                                  {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 10 }} />)}
+                                <div className="mb-3">
+                                  <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={12} />
                                 </div>
                                 <p className="text-blue-600 font-extrabold text-sm">S/. {producto.precio}</p>
                               </div>

@@ -19,6 +19,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import RatingStars from '@/components/RatingStars';
 
 export default function ExplorarPage() {
   const [productos, setProductos] = useState([]);
@@ -210,9 +211,7 @@ export default function ExplorarPage() {
                   <h3 className="font-bold text-gray-800 text-sm line-clamp-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h3>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-blue-600 font-extrabold">S/. {producto.precio}</span>
-                    <div className="flex items-center gap-1">
-                      {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 10 }} />)}
-                    </div>
+                    <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={10} showCount={false} />
                   </div>
                 </div>
               </Link>

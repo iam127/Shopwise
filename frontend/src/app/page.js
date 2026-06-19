@@ -14,6 +14,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RatingStars from '@/components/RatingStars';
 
 export default function HomePage() {
   const [productos, setProductos] = useState([]);
@@ -279,11 +280,8 @@ export default function HomePage() {
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h3>
-                  <div className="flex items-center gap-1 mb-3">
-                    {[1,2,3,4,5].map((s) => (
-                      <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 14 }} />
-                    ))}
-                    <span className="text-gray-400 text-xs ml-1">(128)</span>
+                  <div className="mb-3">
+                    <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={14} />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
