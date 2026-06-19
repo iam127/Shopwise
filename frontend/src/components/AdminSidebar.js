@@ -9,6 +9,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EmailIcon from '@mui/icons-material/Email';
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import GroupsIcon from '@mui/icons-material/Groups';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import LogoutIcon from '@mui/icons-material/Logout';
 
@@ -22,6 +23,7 @@ export default function AdminSidebar() {
     { href: '/admin/productos', label: 'Productos', icon: <Inventory2Icon style={{ fontSize: 20 }} /> },
     { href: '/admin/categorias', label: 'Categorias', icon: <CategoryIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/pedidos', label: 'Pedidos', icon: <ShoppingBagIcon style={{ fontSize: 20 }} /> },
+    { href: '/admin/usuarios', label: 'Usuarios', icon: <GroupsIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/mensajes', label: 'Mensajes', icon: <EmailIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/newsletter', label: 'Newsletter', icon: <MarkEmailUnreadIcon style={{ fontSize: 20 }} /> },
   ];
