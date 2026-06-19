@@ -73,4 +73,23 @@ const getAllPedidos = async (req, res) => {
   }
 };
 
-module.exports = { createPedido, getPedidos, getPedidoById, getAllPedidos };
+const updateEstadoPedido = async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+  const estadosValidos = ['pendiente', 'procesando', 'enviado', 'entregado', 'cancelado'];
+  if (!estadosValidos.includes(estado)) {
+    return res.status(400).json({ message: 'Estado no válido' });
+  }
+  try {
+    const result = await pool.query(
+      'UPDATE pedidos SET estado = $1 WHERE id = $2 RETURNING *',
+      [estado, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ message: 'Pedido no encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Error al actualizar estado', error: err.message });
+  }
+};
+
+module.exports = { createPedido, getPedidos, getPedidoById, getAllPedidos, updateEstadoPedido };
