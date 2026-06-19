@@ -24,6 +24,9 @@ const pagosRoutes = require('./src/routes/pagos.routes');
 const estadisticasRoutes = require('./src/routes/estadisticas.routes');
 const favoritosRoutes = require('./src/routes/favoritos.routes');
 const perfilRoutes = require('./src/routes/perfil.routes');
+const newsletterRoutes = require('./src/routes/newsletter.routes');
+const contactoRoutes = require('./src/routes/contacto.routes');
+const ratingsRoutes = require('./src/routes/ratings.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categorias', categoriasRoutes);
@@ -34,7 +37,9 @@ app.use('/api/pagos', pagosRoutes);
 app.use('/api/estadisticas', estadisticasRoutes);
 app.use('/api/favoritos', favoritosRoutes);
 app.use('/api/perfil', perfilRoutes);
-
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/contacto', contactoRoutes);
+app.use('/api/ratings', ratingsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
