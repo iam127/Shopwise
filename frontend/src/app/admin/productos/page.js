@@ -3,7 +3,16 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import AdminSidebar from '@/components/AdminSidebar';
+import toast from 'react-hot-toast';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 export default function AdminProductosPage() {
   const { user } = useAuth();
@@ -14,7 +23,10 @@ export default function AdminProductosPage() {
     nombre: '', descripcion: '', precio: '', stock: '', imagen_url: '', categoria_id: ''
   });
   const [editId, setEditId] = useState(null);
-  const [mensaje, setMensaje] = useState('');
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [categoriaFiltro, setCategoriaFiltro] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user && user.rol !== 'admin') router.push('/productos');
@@ -28,20 +40,28 @@ export default function AdminProductosPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       if (editId) {
-        await api.put(`/productos/${editId}`, form);
-        setMensaje('Producto actualizado');
+        await api.put('/productos/' + editId, form);
+        toast.success('Producto actualizado correctamente');
       } else {
         await api.post('/productos', form);
-        setMensaje('Producto creado');
+        toast.success('Producto creado correctamente');
       }
-      setForm({ nombre: '', descripcion: '', precio: '', stock: '', imagen_url: '', categoria_id: '' });
-      setEditId(null);
+      cerrarModal();
       fetchProductos();
     } catch (err) {
-      setMensaje('Error al guardar producto');
+      toast.error('Error al guardar producto');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const abrirModalNuevo = () => {
+    setForm({ nombre: '', descripcion: '', precio: '', stock: '', imagen_url: '', categoria_id: '' });
+    setEditId(null);
+    setModalAbierto(true);
   };
 
   const handleEdit = (producto) => {
@@ -54,125 +74,307 @@ export default function AdminProductosPage() {
       categoria_id: producto.categoria_id,
     });
     setEditId(producto.id);
+    setModalAbierto(true);
+  };
+
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setEditId(null);
+    setForm({ nombre: '', descripcion: '', precio: '', stock: '', imagen_url: '', categoria_id: '' });
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar este producto?')) return;
-    await api.delete(`/productos/${id}`);
-    fetchProductos();
+    if (!confirm('Estas seguro de eliminar este producto? Esta accion no se puede deshacer.')) return;
+    try {
+      await api.delete('/productos/' + id);
+      toast.success('Producto eliminado');
+      fetchProductos();
+    } catch (err) {
+      toast.error('Error al eliminar producto');
+    }
   };
 
+  const productosFiltrados = productos.filter((p) => {
+    const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const matchCategoria = categoriaFiltro ? p.categoria_id === parseInt(categoriaFiltro) : true;
+    return matchBusqueda && matchCategoria;
+  });
+
+  const sinStock = productos.filter((p) => p.stock === 0).length;
+  const stockBajo = productos.filter((p) => p.stock > 0 && p.stock <= 5).length;
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">Shopwise Admin</h1>
-        <div className="flex gap-4">
-          <Link href="/admin/estadisticas" className="text-sm text-gray-600 hover:underline">Estadísticas</Link>
-          <Link href="/productos" className="text-sm text-gray-600 hover:underline">Ver tienda</Link>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-50 flex">
+      <AdminSidebar />
 
-      <div className="max-w-5xl mx-auto p-6">
-        <h2 className="text-2xl font-bold mb-6">Gestión de Productos</h2>
-
-        {mensaje && <p className="text-green-600 mb-4">{mensaje}</p>}
-
-        <div className="bg-white p-6 rounded shadow mb-8">
-          <h3 className="font-semibold text-lg mb-4">{editId ? 'Editar producto' : 'Nuevo producto'}</h3>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Nombre"
-              className="border p-2 rounded"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              required
-            />
-            <select
-              className="border p-2 rounded"
-              value={form.categoria_id}
-              onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}
-              required
+      <div className="flex-1 ml-64">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-extrabold text-gray-800">Gestion de productos</h1>
+              <p className="text-gray-400 text-sm mt-1">Administra el catalogo de Shopwise</p>
+            </div>
+            <button
+              onClick={abrirModalNuevo}
+              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
             >
-              <option value="">Selecciona categoría</option>
+              <AddIcon style={{ fontSize: 20 }} />
+              Nuevo producto
+            </button>
+          </div>
+        </div>
+
+        <div className="p-8">
+          {/* Stats rapidos */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                <Inventory2Icon style={{ fontSize: 24 }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-800">{productos.length}</p>
+                <p className="text-gray-400 text-sm">Total productos</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+                <WarningAmberIcon style={{ fontSize: 24 }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-800">{stockBajo}</p>
+                <p className="text-gray-400 text-sm">Stock bajo (≤5)</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center">
+                <CheckCircleIcon style={{ fontSize: 24 }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-800">{sinStock}</p>
+                <p className="text-gray-400 text-sm">Sin stock</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtros */}
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-6 flex flex-wrap gap-3 items-center">
+            <div className="relative flex-1 min-w-[200px]">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style={{ fontSize: 18 }} />
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+            </div>
+            <select
+              className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+              value={categoriaFiltro}
+              onChange={(e) => setCategoriaFiltro(e.target.value)}
+            >
+              <option value="">Todas las categorias</option>
               {categorias.map((c) => (
                 <option key={c.id} value={c.id}>{c.nombre}</option>
               ))}
             </select>
-            <input
-              type="number"
-              placeholder="Precio"
-              className="border p-2 rounded"
-              value={form.precio}
-              onChange={(e) => setForm({ ...form, precio: e.target.value })}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Stock"
-              className="border p-2 rounded"
-              value={form.stock}
-              onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              required
-            />
-            <input
-              type="text"
-              placeholder="URL de imagen"
-              className="border p-2 rounded col-span-2"
-              value={form.imagen_url}
-              onChange={(e) => setForm({ ...form, imagen_url: e.target.value })}
-            />
-            <textarea
-              placeholder="Descripción"
-              className="border p-2 rounded col-span-2"
-              value={form.descripcion}
-              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-            />
-            <div className="col-span-2 flex gap-3">
-              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                {editId ? 'Actualizar' : 'Crear'}
+            <p className="text-gray-400 text-sm whitespace-nowrap">{productosFiltrados.length} resultados</p>
+          </div>
+
+          {/* Tabla */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="p-4 text-left font-semibold text-gray-600">Producto</th>
+                  <th className="p-4 text-left font-semibold text-gray-600">Categoria</th>
+                  <th className="p-4 text-left font-semibold text-gray-600">Precio</th>
+                  <th className="p-4 text-left font-semibold text-gray-600">Stock</th>
+                  <th className="p-4 text-right font-semibold text-gray-600">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-10 text-center text-gray-400">
+                      No se encontraron productos
+                    </td>
+                  </tr>
+                ) : (
+                  productosFiltrados.map((p) => (
+                    <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                            {p.imagen_url ? (
+                              <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <Inventory2Icon style={{ fontSize: 20 }} />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{p.nombre}</p>
+                            <p className="text-gray-400 text-xs line-clamp-1 max-w-xs">{p.descripcion}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
+                          {p.categoria}
+                        </span>
+                      </td>
+                      <td className="p-4 font-bold text-gray-800">S/. {p.precio}</td>
+                      <td className="p-4">
+                        <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (
+                          p.stock === 0 ? 'bg-red-50 text-red-600' :
+                          p.stock <= 5 ? 'bg-orange-50 text-orange-600' :
+                          'bg-green-50 text-green-600'
+                        )}>
+                          {p.stock} unidades
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEdit(p)}
+                            className="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-colors"
+                          >
+                            <EditIcon style={{ fontSize: 18 }} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            className="w-9 h-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center hover:bg-red-100 transition-colors"
+                          >
+                            <DeleteIcon style={{ fontSize: 18 }} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal */}
+      {modalAbierto && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+              <h3 className="text-xl font-extrabold text-gray-800">
+                {editId ? 'Editar producto' : 'Nuevo producto'}
+              </h3>
+              <button onClick={cerrarModal} className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <CloseIcon style={{ fontSize: 18 }} />
               </button>
-              {editId && (
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre del producto *</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Mouse Inalambrico"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                  value={form.nombre}
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Categoria *</label>
+                  <select
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                    value={form.categoria_id}
+                    onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}
+                    required
+                  >
+                    <option value="">Selecciona categoria</option>
+                    {categorias.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Precio (S/.) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                    value={form.precio}
+                    onChange={(e) => setForm({ ...form, precio: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Stock disponible *</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">URL de imagen</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                  value={form.imagen_url}
+                  onChange={(e) => setForm({ ...form, imagen_url: e.target.value })}
+                />
+                {form.imagen_url && (
+                  <div className="mt-2 w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
+                    <img src={form.imagen_url} alt="preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Descripcion</label>
+                <textarea
+                  rows={4}
+                  placeholder="Describe el producto..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 resize-none"
+                  value={form.descripcion}
+                  onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+                >
+                  {loading ? 'Guardando...' : editId ? 'Actualizar producto' : 'Crear producto'}
+                </button>
                 <button
                   type="button"
-                  onClick={() => { setEditId(null); setForm({ nombre: '', descripcion: '', precio: '', stock: '', imagen_url: '', categoria_id: '' }); }}
-                  className="border px-6 py-2 rounded hover:bg-gray-50"
+                  onClick={cerrarModal}
+                  className="px-6 py-3.5 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
-              )}
-            </div>
-          </form>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <div className="bg-white rounded shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-3 text-left">Nombre</th>
-                <th className="p-3 text-left">Categoría</th>
-                <th className="p-3 text-left">Precio</th>
-                <th className="p-3 text-left">Stock</th>
-                <th className="p-3 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productos.map((p) => (
-                <tr key={p.id} className="border-t">
-                  <td className="p-3">{p.nombre}</td>
-                  <td className="p-3">{p.categoria}</td>
-                  <td className="p-3">S/. {p.precio}</td>
-                  <td className="p-3">{p.stock}</td>
-                  <td className="p-3 flex gap-2">
-                    <button onClick={() => handleEdit(p)} className="text-blue-600 hover:underline">Editar</button>
-                    <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline">Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
