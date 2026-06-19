@@ -13,6 +13,14 @@ export function middleware(request) {
   }
 
   if (token && (pathname === '/login' || pathname === '/register')) {
+    if (user) {
+      try {
+        const userData = JSON.parse(user);
+        if (userData.rol === 'admin') {
+          return NextResponse.redirect(new URL('/admin/estadisticas', request.url));
+        }
+      } catch {}
+    }
     return NextResponse.redirect(new URL('/productos', request.url));
   }
 

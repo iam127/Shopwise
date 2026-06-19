@@ -45,6 +45,7 @@ export default function AdminSidebar() {
             src="/logo.png"
             alt="Shopwise"
             fill
+            sizes="160px"
             style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
           />
         </div>
