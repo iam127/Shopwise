@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import CategoryIcon from '@mui/icons-material/Category';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import LogoutIcon from '@mui/icons-material/Logout';
 
@@ -16,6 +17,7 @@ export default function AdminSidebar() {
   const links = [
     { href: '/admin/estadisticas', label: 'Estadisticas', icon: <DashboardIcon style={{ fontSize: 20 }} /> },
     { href: '/admin/productos', label: 'Productos', icon: <Inventory2Icon style={{ fontSize: 20 }} /> },
+    { href: '/admin/categorias', label: 'Categorias', icon: <CategoryIcon style={{ fontSize: 20 }} /> },
   ];
 
   const handleLogout = () => {
@@ -29,17 +31,17 @@ export default function AdminSidebar() {
   return (
     <aside className="w-64 bg-gray-900 min-h-screen flex flex-col fixed left-0 top-0 z-40">
       {/* Logo */}
-    <div className="px-5 py-6 border-b border-gray-800 flex flex-col items-center overflow-hidden">
-    <div style={{ width: '160px', height: '50px', position: 'relative', transform: 'scale(1.8)' }}>
-        <Image
-        src="/logo.png"
-        alt="Shopwise"
-        fill
-        style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-        />
-    </div>
-    <p className="text-gray-500 uppercase tracking-widest font-semibold mt-3" style={{ fontSize: '10px' }}>Panel Admin</p>
-    </div>
+      <div className="px-5 py-6 border-b border-gray-800 flex flex-col items-center overflow-hidden">
+        <div style={{ width: '160px', height: '50px', position: 'relative', transform: 'scale(1.8)' }}>
+          <Image
+            src="/logo.png"
+            alt="Shopwise"
+            fill
+            style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+          />
+        </div>
+        <p className="text-gray-500 uppercase tracking-widest font-semibold mt-3" style={{ fontSize: '10px' }}>Panel Admin</p>
+      </div>
 
       {/* Links */}
       <nav className="flex-1 p-4 space-y-1">
