@@ -24,6 +24,7 @@ import RatingStars from '@/components/RatingStars';
 export default function ExplorarPage() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [testimonios, setTestimonios] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [showSugerencias, setShowSugerencias] = useState(false);
@@ -35,6 +36,7 @@ export default function ExplorarPage() {
   const [pagina, setPagina] = useState(1);
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [productoHover, setProductoHover] = useState(null);
   const searchRef = useRef(null);
   const PRODUCTOS_POR_PAGINA = 8;
@@ -43,9 +45,11 @@ export default function ExplorarPage() {
     Promise.all([
       api.get('/productos'),
       api.get('/categorias'),
-    ]).then(([prodRes, catRes]) => {
+      api.get('/testimonios'),
+    ]).then(([prodRes, catRes, testRes]) => {
       setProductos(prodRes.data);
       setCategorias(catRes.data);
+      setTestimonios(testRes.data);
       const maxP = Math.max(...prodRes.data.map((p) => parseFloat(p.precio)));
       setPrecioMax(maxP);
       setLoading(false);
@@ -64,6 +68,22 @@ export default function ExplorarPage() {
 
   useEffect(() => { setPagina(1); }, [busqueda, categoriaFiltro, orden, precioMin, precioMax]);
 
+  const handleNewsletter = async () => {
+    if (!email) return;
+    setNewsletterLoading(true);
+    try {
+      await api.post('/newsletter', { email });
+      setNewsletterEnviado(true);
+      setEmail('');
+    } catch (error) {
+      if (error.response?.data?.message === 'Este email ya esta suscrito') {
+        setNewsletterEnviado(true);
+      }
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
+
   let productosFiltrados = productos.filter((p) => {
     const matchCategoria = categoriaFiltro ? p.categoria_id === parseInt(categoriaFiltro) : true;
     const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
@@ -79,12 +99,6 @@ export default function ExplorarPage() {
   const productosPaginados = productosFiltrados.slice((pagina - 1) * PRODUCTOS_POR_PAGINA, pagina * PRODUCTOS_POR_PAGINA);
   const sugerencias = productos.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase())).slice(0, 5);
   const productosTrending = productos.slice(0, 4);
-
-  const testimonios = [
-    { nombre: 'Carlos M.', cargo: 'Cliente frecuente', texto: 'Excelente variedad de productos. Encontre exactamente lo que buscaba a un precio increible.', avatar: 'C' },
-    { nombre: 'Maria L.', cargo: 'Compradora verificada', texto: 'El envio fue rapidisimo y el producto llego en perfectas condiciones. Totalmente recomendado.', avatar: 'M' },
-    { nombre: 'Jose R.', cargo: 'Cliente habitual', texto: 'Productos de calidad a precios justos. La mejor tienda online que he encontrado.', avatar: 'J' },
-  ];
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -375,9 +389,8 @@ export default function ExplorarPage() {
                 <div className="p-4">
                   <h3 className="font-bold text-gray-800 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h3>
                   <p className="text-gray-400 text-xs mb-2 line-clamp-2">{producto.descripcion}</p>
-                  <div className="flex items-center gap-1 mb-3">
-                    {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 12 }} />)}
-                    <span className="text-gray-400 text-xs ml-1">(128)</span>
+                  <div className="mb-3">
+                    <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={12} />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-blue-600 font-extrabold text-lg">S/. {producto.precio}</span>
@@ -402,9 +415,8 @@ export default function ExplorarPage() {
                   <p className="text-xs text-blue-500 font-semibold uppercase tracking-wide mb-1">{producto.categoria}</p>
                   <h3 className="font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h3>
                   <p className="text-gray-400 text-sm mb-2 line-clamp-2">{producto.descripcion}</p>
-                  <div className="flex items-center gap-1 mb-3">
-                    {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 12 }} />)}
-                    <span className="text-gray-400 text-xs ml-1">(128)</span>
+                  <div className="mb-3">
+                    <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={12} />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
@@ -446,32 +458,41 @@ export default function ExplorarPage() {
         )}
       </div>
 
-      {/* Testimonios */}
+      {/* Testimonios reales */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-blue-500 font-semibold text-sm uppercase tracking-widest">Opiniones</span>
             <h2 className="text-3xl font-extrabold text-gray-900 mt-2">Lo que dicen nuestros clientes</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonios.map((t, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 16 }} />)}
-                </div>
-                <p className="text-gray-500 text-sm leading-relaxed mb-4">"{t.texto}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                    {t.avatar}
+          {testimonios.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-400 text-lg">Aun no hay opiniones publicadas</p>
+              <p className="text-blue-500 text-sm mt-2">Se el primero en compartir tu experiencia con Shopwise</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonios.map((t) => (
+                <div key={t.id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1,2,3,4,5].map((s) => (
+                      <StarIcon key={s} className={s <= t.rating ? 'text-yellow-400' : 'text-gray-200'} style={{ fontSize: 16 }} />
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-gray-800 font-semibold text-sm">{t.nombre}</p>
-                    <p className="text-gray-400 text-xs">{t.cargo}</p>
+                  <p className="text-gray-500 text-sm leading-relaxed mb-4">"{t.texto}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                      {t.nombre.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-semibold text-sm">{t.nombre}</p>
+                      <p className="text-gray-400 text-xs">Cliente verificado</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -501,12 +522,14 @@ export default function ExplorarPage() {
                 className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNewsletter()}
               />
               <button
-                onClick={() => { if (email) setNewsletterEnviado(true); }}
-                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors whitespace-nowrap"
+                onClick={handleNewsletter}
+                disabled={newsletterLoading}
+                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 disabled:bg-blue-100 transition-colors whitespace-nowrap"
               >
-                Suscribirme
+                {newsletterLoading ? 'Enviando...' : 'Suscribirme'}
               </button>
             </div>
           )}

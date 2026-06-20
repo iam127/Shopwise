@@ -1,7 +1,10 @@
+'use client';
+import { useEffect, useState } from 'react';
 import NavbarPublic from '@/components/NavbarPublic';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
 import Link from 'next/link';
+import api from '@/lib/axios';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -17,6 +20,14 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SecurityIcon from '@mui/icons-material/Security';
 
 export default function NosotrosPage() {
+  const [statsPublicas, setStatsPublicas] = useState({ totalProductos: 0, totalClientes: 0, ratingPromedio: 0, totalRatings: 0, totalCategorias: 0 });
+  const [testimonios, setTestimonios] = useState([]);
+
+  useEffect(() => {
+    api.get('/stats-publicas').then((res) => setStatsPublicas(res.data)).catch(() => {});
+    api.get('/testimonios').then((res) => setTestimonios(res.data)).catch(() => {});
+  }, []);
+
   const equipo = [
     { nombre: 'Matias Galvan', cargo: 'CEO & Founder', avatar: 'M', color: 'bg-blue-600', descripcion: 'Apasionado por la tecnologia y el comercio electronico. Lider del equipo Shopwise.' },
     { nombre: 'Ana Torres', cargo: 'CTO', avatar: 'A', color: 'bg-purple-600', descripcion: 'Experta en desarrollo de software y arquitectura de sistemas escalables.' },
@@ -30,12 +41,6 @@ export default function NosotrosPage() {
     { ano: '20 Jun', titulo: 'Backend listo', desc: 'Completamos el backend con Express y PostgreSQL. Rutas de autenticacion, productos, carrito, pedidos y pagos funcionando.' },
     { ano: '25 Jun', titulo: 'Frontend lanzado', desc: 'Lanzamos el frontend con Next.js. Landing page publica, catalogo de productos, carrito y panel de administracion.' },
     { ano: '3 Jul', titulo: 'Despliegue final', desc: 'Shopwise desplegado en produccion. Frontend en Vercel y backend con base de datos en Render. Proyecto completado.' },
-  ];
-
-  const testimonios = [
-    { nombre: 'Roberto L.', cargo: 'Cliente desde 2024', texto: 'Shopwise cambio la forma en que compro online. Excelente servicio y productos de calidad.', avatar: 'R' },
-    { nombre: 'Carmen V.', cargo: 'Cliente frecuente', texto: 'El equipo de soporte es increible. Siempre dispuestos a ayudar con cualquier consulta.', avatar: 'C' },
-    { nombre: 'Diego P.', cargo: 'Cliente verificado', texto: 'Los mejores precios del mercado con la mejor calidad. No compro en otro lado.', avatar: 'D' },
   ];
 
   return (
@@ -60,9 +65,9 @@ export default function NosotrosPage() {
           </p>
           <div className="flex items-center gap-8 justify-center mt-10">
             {[
-              { num: '2023', label: 'Fundados' },
-              { num: '1K+', label: 'Clientes' },
-              { num: '98%', label: 'Satisfaccion' },
+              { num: '2026', label: 'Fundados' },
+              { num: statsPublicas.totalClientes + '+', label: 'Clientes' },
+              { num: statsPublicas.totalRatings > 0 ? statsPublicas.ratingPromedio + '★' : 'Nuevo', label: 'Valoracion' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl font-extrabold text-white">{stat.num}</p>
@@ -112,8 +117,8 @@ export default function NosotrosPage() {
                 <img src="/img-mision.png" alt="Nuestro equipo" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -top-4 -right-4 bg-blue-600 text-white rounded-2xl p-4 shadow-xl">
-                <p className="text-2xl font-extrabold">98%</p>
-                <p className="text-blue-200 text-xs">Satisfaccion</p>
+                <p className="text-2xl font-extrabold">{statsPublicas.totalProductos}+</p>
+                <p className="text-blue-200 text-xs">Productos</p>
               </div>
               <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl border border-gray-100">
                 <p className="text-2xl font-extrabold text-gray-800">24/7</p>
@@ -124,15 +129,15 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* Estadisticas animadas */}
+      {/* Estadisticas reales */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-800">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { num: '500+', label: 'Productos', icon: <RocketLaunchIcon style={{ fontSize: 28 }} /> },
-              { num: '1K+', label: 'Clientes felices', icon: <GroupsIcon style={{ fontSize: 28 }} /> },
-              { num: '4.9★', label: 'Valoracion promedio', icon: <StarIcon style={{ fontSize: 28 }} /> },
-              { num: '98%', label: 'Satisfaccion', icon: <TrendingUpIcon style={{ fontSize: 28 }} /> },
+              { num: statsPublicas.totalProductos + '+', label: 'Productos', icon: <RocketLaunchIcon style={{ fontSize: 28 }} /> },
+              { num: statsPublicas.totalClientes + '+', label: 'Clientes felices', icon: <GroupsIcon style={{ fontSize: 28 }} /> },
+              { num: statsPublicas.totalRatings > 0 ? statsPublicas.ratingPromedio + '★' : 'Nuevo', label: 'Valoracion promedio', icon: <StarIcon style={{ fontSize: 28 }} /> },
+              { num: statsPublicas.totalCategorias + '', label: 'Categorias', icon: <TrendingUpIcon style={{ fontSize: 28 }} /> },
             ].map((stat) => (
               <div key={stat.label} className="text-center group">
                 <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white group-hover:bg-white/30 transition-colors">
@@ -186,19 +191,16 @@ export default function NosotrosPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: <EmojiObjectsIcon style={{ fontSize: 36 }} />, color: 'text-yellow-500 bg-yellow-50', title: 'Innovacion', desc: 'Siempre buscamos nuevas formas de mejorar tu experiencia de compra con tecnologia de vanguardia.', stat: '50+ mejoras al año' },
-              { icon: <FavoriteIcon style={{ fontSize: 36 }} />, color: 'text-red-500 bg-red-50', title: 'Pasion', desc: 'Amamos lo que hacemos y eso se refleja en cada detalle de nuestra plataforma y servicio al cliente.', stat: '98% satisfaccion' },
-              { icon: <GroupsIcon style={{ fontSize: 36 }} />, color: 'text-blue-500 bg-blue-50', title: 'Comunidad', desc: 'Construimos una comunidad de compradores y vendedores conectados por la confianza y el respeto mutuo.', stat: '1K+ miembros' },
+              { icon: <EmojiObjectsIcon style={{ fontSize: 36 }} />, color: 'text-yellow-500 bg-yellow-50', title: 'Innovacion', desc: 'Siempre buscamos nuevas formas de mejorar tu experiencia de compra con tecnologia de vanguardia.' },
+              { icon: <FavoriteIcon style={{ fontSize: 36 }} />, color: 'text-red-500 bg-red-50', title: 'Pasion', desc: 'Amamos lo que hacemos y eso se refleja en cada detalle de nuestra plataforma y servicio al cliente.' },
+              { icon: <GroupsIcon style={{ fontSize: 36 }} />, color: 'text-blue-500 bg-blue-50', title: 'Comunidad', desc: 'Construimos una comunidad de compradores y vendedores conectados por la confianza y el respeto mutuo.' },
             ].map((item) => (
               <div key={item.title} className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
                 <div className={'w-20 h-20 ' + item.color + ' rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform'}>
                   {item.icon}
                 </div>
                 <h3 className="text-xl font-extrabold text-gray-800 mb-3">{item.title}</h3>
-                <p className="text-gray-500 leading-relaxed mb-4">{item.desc}</p>
-                <div className="pt-4 border-t border-gray-100">
-                  <p className="text-blue-600 font-bold text-sm">{item.stat}</p>
-                </div>
+                <p className="text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -222,9 +224,6 @@ export default function NosotrosPage() {
                 <h3 className="font-extrabold text-gray-800 mb-1">{miembro.nombre}</h3>
                 <p className="text-blue-500 text-xs font-semibold uppercase tracking-wide mb-3">{miembro.cargo}</p>
                 <p className="text-gray-400 text-sm leading-relaxed">{miembro.descripcion}</p>
-                <div className="flex justify-center gap-2 mt-4">
-                  {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 12 }} />)}
-                </div>
               </div>
             ))}
           </div>
@@ -259,32 +258,41 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* Testimonios */}
+      {/* Testimonios reales */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-blue-500 font-semibold text-sm uppercase tracking-widest">Opiniones</span>
             <h2 className="text-3xl font-extrabold text-gray-900 mt-2">Lo que dicen nuestros clientes</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonios.map((t, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 16 }} />)}
-                </div>
-                <p className="text-gray-500 text-sm leading-relaxed mb-4">"{t.texto}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
-                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {t.avatar}
+          {testimonios.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-400 text-lg">Aun no hay opiniones publicadas</p>
+              <p className="text-blue-500 text-sm mt-2">Se el primero en compartir tu experiencia con Shopwise</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonios.map((t) => (
+                <div key={t.id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1,2,3,4,5].map((s) => (
+                      <StarIcon key={s} className={s <= t.rating ? 'text-yellow-400' : 'text-gray-200'} style={{ fontSize: 16 }} />
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-gray-800 font-semibold text-sm">{t.nombre}</p>
-                    <p className="text-gray-400 text-xs">{t.cargo}</p>
+                  <p className="text-gray-500 text-sm leading-relaxed mb-4">"{t.texto}"</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {t.nombre.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-semibold text-sm">{t.nombre}</p>
+                      <p className="text-gray-400 text-xs">Cliente verificado</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
