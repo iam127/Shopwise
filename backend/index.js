@@ -28,6 +28,7 @@ const newsletterRoutes = require('./src/routes/newsletter.routes');
 const contactoRoutes = require('./src/routes/contacto.routes');
 const ratingsRoutes = require('./src/routes/ratings.routes');
 const usuariosRoutes = require('./src/routes/usuarios.routes');
+const uploadRoutes = require('./src/routes/upload.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categorias', categoriasRoutes);
@@ -42,6 +43,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contacto', contactoRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
