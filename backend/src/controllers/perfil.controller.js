@@ -5,7 +5,7 @@ const getPerfil = async (req, res) => {
   const usuario_id = req.user.id;
   try {
     const result = await pool.query(
-      'SELECT id, nombre, email, rol FROM usuarios WHERE id = $1',
+      'SELECT id, nombre, email, rol, telefono, direccion FROM usuarios WHERE id = $1',
       [usuario_id]
     );
     if (result.rows.length === 0) {
@@ -19,7 +19,7 @@ const getPerfil = async (req, res) => {
 
 const updatePerfil = async (req, res) => {
   const usuario_id = req.user.id;
-  const { nombre, email } = req.body;
+  const { nombre, email, telefono, direccion } = req.body;
   try {
     const emailExists = await pool.query(
       'SELECT * FROM usuarios WHERE email = $1 AND id != $2',
@@ -29,8 +29,8 @@ const updatePerfil = async (req, res) => {
       return res.status(400).json({ message: 'El email ya está en uso' });
     }
     const result = await pool.query(
-      'UPDATE usuarios SET nombre = $1, email = $2 WHERE id = $3 RETURNING id, nombre, email, rol',
-      [nombre, email, usuario_id]
+      'UPDATE usuarios SET nombre = $1, email = $2, telefono = $3, direccion = $4 WHERE id = $5 RETURNING id, nombre, email, rol, telefono, direccion',
+      [nombre, email, telefono || null, direccion || null, usuario_id]
     );
     res.json({ message: 'Perfil actualizado', user: result.rows[0] });
   } catch (err) {
