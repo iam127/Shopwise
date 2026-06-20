@@ -13,6 +13,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 export default function AdminProductosPage() {
   const { user } = useAuth();
@@ -26,7 +28,9 @@ export default function AdminProductosPage() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
   const [loading, setLoading] = useState(false);
+  const [procesando, setProcesando] = useState(null);
 
   useEffect(() => {
     if (user && user.rol !== 'admin') router.push('/productos');
@@ -35,7 +39,7 @@ export default function AdminProductosPage() {
   }, [user]);
 
   const fetchProductos = () => {
-    api.get('/productos').then((res) => setProductos(res.data));
+    api.get('/productos/admin/todos').then((res) => setProductos(res.data));
   };
 
   const handleSubmit = async (e) => {
@@ -94,14 +98,29 @@ export default function AdminProductosPage() {
     }
   };
 
+  const handleToggleActivo = async (producto) => {
+    setProcesando(producto.id);
+    try {
+      const res = await api.put('/productos/' + producto.id + '/toggle-activo');
+      setProductos((prev) => prev.map((p) => p.id === producto.id ? { ...p, activo: res.data.activo } : p));
+      toast.success('Producto ' + (res.data.activo ? 'activado' : 'desactivado') + ' correctamente');
+    } catch (err) {
+      toast.error('Error al actualizar el producto');
+    } finally {
+      setProcesando(null);
+    }
+  };
+
   const productosFiltrados = productos.filter((p) => {
     const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const matchCategoria = categoriaFiltro ? p.categoria_id === parseInt(categoriaFiltro) : true;
-    return matchBusqueda && matchCategoria;
+    const matchEstado = filtroEstado === 'todos' ? true : filtroEstado === 'activos' ? p.activo : !p.activo;
+    return matchBusqueda && matchCategoria && matchEstado;
   });
 
   const sinStock = productos.filter((p) => p.stock === 0).length;
   const stockBajo = productos.filter((p) => p.stock > 0 && p.stock <= 5).length;
+  const inactivos = productos.filter((p) => !p.activo).length;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -127,7 +146,7 @@ export default function AdminProductosPage() {
 
         <div className="p-8">
           {/* Stats rapidos */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-6">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <Inventory2Icon style={{ fontSize: 24 }} />
@@ -155,6 +174,15 @@ export default function AdminProductosPage() {
                 <p className="text-gray-400 text-sm">Sin stock</p>
               </div>
             </div>
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center">
+                <VisibilityOffIcon style={{ fontSize: 24 }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-800">{inactivos}</p>
+                <p className="text-gray-400 text-sm">Desactivados</p>
+              </div>
+            </div>
           </div>
 
           {/* Filtros */}
@@ -179,6 +207,23 @@ export default function AdminProductosPage() {
                 <option key={c.id} value={c.id}>{c.nombre}</option>
               ))}
             </select>
+            <div className="flex gap-2">
+              {[
+                { value: 'todos', label: 'Todos' },
+                { value: 'activos', label: 'Activos' },
+                { value: 'inactivos', label: 'Desactivados' },
+              ].map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFiltroEstado(f.value)}
+                  className={'px-4 py-2 rounded-full text-xs font-semibold transition-all ' + (
+                    filtroEstado === f.value ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
             <p className="text-gray-400 text-sm whitespace-nowrap">{productosFiltrados.length} resultados</p>
           </div>
 
@@ -191,19 +236,20 @@ export default function AdminProductosPage() {
                   <th className="p-4 text-left font-semibold text-gray-600">Categoria</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Precio</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Stock</th>
+                  <th className="p-4 text-left font-semibold text-gray-600">Visibilidad</th>
                   <th className="p-4 text-right font-semibold text-gray-600">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center text-gray-400">
+                    <td colSpan={6} className="p-10 text-center text-gray-400">
                       No se encontraron productos
                     </td>
                   </tr>
                 ) : (
                   productosFiltrados.map((p) => (
-                    <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <tr key={p.id} className={'border-b border-gray-50 hover:bg-gray-50 transition-colors ' + (!p.activo ? 'opacity-60' : '')}>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
@@ -237,7 +283,26 @@ export default function AdminProductosPage() {
                         </span>
                       </td>
                       <td className="p-4">
+                        <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (
+                          p.activo ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
+                        )}>
+                          {p.activo ? 'Visible' : 'Oculto'}
+                        </span>
+                      </td>
+                      <td className="p-4">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleActivo(p)}
+                            disabled={procesando === p.id}
+                            title={p.activo ? 'Ocultar del catalogo' : 'Mostrar en catalogo'}
+                            className={'w-9 h-9 rounded-xl flex items-center justify-center transition-colors ' + (
+                              p.activo
+                                ? 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                : 'bg-green-50 text-green-600 hover:bg-green-100'
+                            )}
+                          >
+                            {p.activo ? <VisibilityOffIcon style={{ fontSize: 18 }} /> : <VisibilityIcon style={{ fontSize: 18 }} />}
+                          </button>
                           <button
                             onClick={() => handleEdit(p)}
                             className="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-colors"
