@@ -3,6 +3,8 @@ import { useState } from 'react';
 import NavbarPublic from '@/components/NavbarPublic';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import api from '@/lib/axios';
+import toast from 'react-hot-toast';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -17,8 +19,6 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import api from '@/lib/axios';
-import toast from 'react-hot-toast';
 
 export default function ContactoPage() {
   const [formEnviado, setFormEnviado] = useState(false);
@@ -26,6 +26,8 @@ export default function ContactoPage() {
   const [faqAbierto, setFaqAbierto] = useState(null);
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,6 +39,24 @@ export default function ContactoPage() {
       toast.error('Error al enviar el mensaje. Intenta de nuevo.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNewsletter = async () => {
+    if (!email) return;
+    setNewsletterLoading(true);
+    try {
+      await api.post('/newsletter', { email });
+      setNewsletterEnviado(true);
+      setEmail('');
+    } catch (error) {
+      if (error.response?.data?.message === 'Este email ya esta suscrito') {
+        setNewsletterEnviado(true);
+      } else {
+        toast.error('Error al suscribirse. Intenta de nuevo.');
+      }
+    } finally {
+      setNewsletterLoading(false);
     }
   };
 
@@ -112,11 +132,11 @@ export default function ContactoPage() {
         </div>
       </section>
 
-      {/* Seccion principal: 2 columnas */}
+      {/* Seccion principal */}
       <div className="max-w-7xl mx-auto px-6 py-16 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
 
-          {/* Columna izquierda - Info */}
+          {/* Columna izquierda */}
           <div className="lg:col-span-2 space-y-5">
 
             {/* Info de contacto */}
@@ -126,6 +146,7 @@ export default function ContactoPage() {
                 {[
                   { icon: <EmailIcon style={{ fontSize: 18 }} />, color: 'bg-blue-50 text-blue-500', title: 'Email', value: 'matias.galvan@tecsup.edu.pe' },
                   { icon: <PhoneIcon style={{ fontSize: 18 }} />, color: 'bg-green-50 text-green-500', title: 'Telefono', value: '+51 949 510 535' },
+                  { icon: <LocationOnIcon style={{ fontSize: 18 }} />, color: 'bg-red-50 text-red-500', title: 'Ubicacion', value: 'Tecsup, Miraflores - Lima' },
                   { icon: <AccessTimeIcon style={{ fontSize: 18 }} />, color: 'bg-orange-50 text-orange-500', title: 'Horario', value: 'Lun-Vie 9am-6pm / Sab 9am-1pm' },
                 ].map((item) => (
                   <div key={item.title} className="flex items-center gap-3">
@@ -169,6 +190,29 @@ export default function ContactoPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Stats de soporte */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <h3 className="font-extrabold text-gray-800 mb-4 text-sm uppercase tracking-wide">Nuestros numeros</h3>
+              <div className="space-y-4">
+                {[
+                  { num: '500+', label: 'Consultas resueltas', color: 'bg-blue-50 text-blue-600', icon: '💬' },
+                  { num: '<1h', label: 'Tiempo de respuesta', color: 'bg-green-50 text-green-600', icon: '⚡' },
+                  { num: '98%', label: 'Clientes satisfechos', color: 'bg-purple-50 text-purple-600', icon: '⭐' },
+                  { num: '24/7', label: 'Disponibilidad', color: 'bg-orange-50 text-orange-600', icon: '🕐' },
+                ].map((stat) => (
+                  <div key={stat.label} className="flex items-center gap-3">
+                    <div className={'w-12 h-12 ' + stat.color + ' rounded-xl flex items-center justify-center text-xl flex-shrink-0'}>
+                      {stat.icon}
+                    </div>
+                    <div>
+                      <p className={'text-xl font-extrabold ' + stat.color.split(' ')[1]}>{stat.num}</p>
+                      <p className="text-gray-400 text-xs">{stat.label}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -238,18 +282,18 @@ export default function ContactoPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Mensaje *</label>
-                    <textarea rows={6} placeholder="Escribe tu mensaje aqui..." required
+                    <textarea rows={7} placeholder="Escribe tu mensaje aqui..." required
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 resize-none transition-all"
                       value={form.mensaje} onChange={(e) => setForm({ ...form, mensaje: e.target.value })} />
                   </div>
 
-                  <button type="submit"
-                    className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-200 text-base">
-                    Enviar mensaje
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-200 text-base">
+                    {loading ? 'Enviando...' : 'Enviar mensaje'}
                     <ArrowForwardIcon style={{ fontSize: 20 }} />
                   </button>
 
-                  {/* Badges de seguridad */}
+                  {/* Badges */}
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     {[
                       { icon: '🔒', text: 'Datos seguros' },
@@ -341,10 +385,13 @@ export default function ContactoPage() {
             <div className="flex gap-3 max-w-md mx-auto">
               <input type="email" placeholder="tu@email.com"
                 className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
-                value={email} onChange={(e) => setEmail(e.target.value)} />
-              <button onClick={() => { if (email) setNewsletterEnviado(true); }}
-                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors whitespace-nowrap">
-                Suscribirme
+                value={email} onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNewsletter()} />
+              <button
+                onClick={handleNewsletter}
+                disabled={newsletterLoading}
+                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 disabled:bg-blue-100 transition-colors whitespace-nowrap">
+                {newsletterLoading ? 'Enviando...' : 'Suscribirme'}
               </button>
             </div>
           )}

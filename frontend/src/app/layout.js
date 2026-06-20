@@ -1,7 +1,10 @@
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
+
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800'] });
 
 export const metadata = {
   title: 'Shopwise',
@@ -11,7 +14,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body>
+      <body className={jakarta.className} style={{ fontFamily: jakarta.style.fontFamily }}>
         <AuthProvider>
           <CartProvider>
             {children}

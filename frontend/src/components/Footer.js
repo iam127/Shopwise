@@ -86,14 +86,16 @@ export default function Footer() {
 
           {/* Logo y descripcion */}
           <div className="md:col-span-4">
-            <div style={{ width: '160px', height: '45px', position: 'relative' }} className="-mb-3">
-              <Image
-                src="/logo.png"
-                alt="Shopwise"
-                fill
-                sizes="160px"
-                style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-              />
+            <div className="overflow-hidden flex items-center" style={{ width: '180px', height: '64px' }}>
+              <div style={{ width: '160px', height: '40px', position: 'relative', transform: 'scale(4.6)', transformOrigin: 'center center' }}>
+                <Image
+                  src="/logo.png"
+                  alt="Shopwise"
+                  fill
+                  sizes="160px"
+                  style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                />
+              </div>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-gray-400 max-w-xs">
               Tu tienda inteligente. Encuentra los mejores productos al mejor precio con entrega rapida y segura.

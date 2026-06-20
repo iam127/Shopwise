@@ -29,11 +29,20 @@ export default function NavbarPublic() {
 
   return (
     <nav className={'bg-white sticky top-0 z-50 transition-all duration-300 ' + (scrolled ? 'shadow-lg border-b border-gray-100' : 'shadow-sm border-b border-gray-100')}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+
 
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0">
-          <Image src="/logo.png" alt="Shopwise" width={140} height={35} style={{ objectFit: 'contain', width: '140px', height: 'auto' }} />
+        <Link href="/" className="flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ width: '180px', height: '64px' }}>
+          <div style={{ width: '160px', height: '40px', position: 'relative', transform: 'scale(4.6)', transformOrigin: 'center center' }}>
+            <Image
+              src="/logo.png"
+              alt="Shopwise"
+              fill
+              sizes="160px"
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
         </Link>
 
         {/* Links desktop */}
