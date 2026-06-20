@@ -10,6 +10,8 @@ import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import SendIcon from '@mui/icons-material/Send';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 export default function AdminMensajesPage() {
   const { user } = useAuth();
@@ -19,6 +21,8 @@ export default function AdminMensajesPage() {
   const [filtro, setFiltro] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
+  const [respuesta, setRespuesta] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     if (user && user.rol !== 'admin') router.push('/productos');
@@ -35,6 +39,7 @@ export default function AdminMensajesPage() {
 
   const abrirMensaje = async (mensaje) => {
     setMensajeSeleccionado(mensaje);
+    setRespuesta('');
     if (!mensaje.leido) {
       try {
         await api.put('/contacto/' + mensaje.id + '/leido');
@@ -50,6 +55,25 @@ export default function AdminMensajesPage() {
     toast.success('Email copiado');
   };
 
+  const enviarRespuesta = async () => {
+    if (!respuesta.trim()) {
+      toast.error('Escribe una respuesta antes de enviar');
+      return;
+    }
+    setEnviando(true);
+    try {
+      const res = await api.post('/contacto/' + mensajeSeleccionado.id + '/responder', { respuesta });
+      toast.success('Respuesta enviada por email correctamente');
+      setMensajeSeleccionado(res.data.mensaje);
+      setMensajes((prev) => prev.map((m) => m.id === res.data.mensaje.id ? res.data.mensaje : m));
+      setRespuesta('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al enviar la respuesta');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   const tipoConfig = {
     consulta: { label: 'Consulta', color: 'bg-blue-50 text-blue-600', emoji: '💬' },
     soporte: { label: 'Soporte', color: 'bg-purple-50 text-purple-600', emoji: '🔧' },
@@ -58,7 +82,7 @@ export default function AdminMensajesPage() {
   };
 
   const mensajesFiltrados = mensajes.filter((m) => {
-    const matchFiltro = filtro === 'todos' ? true : filtro === 'sin_leer' ? !m.leido : m.leido;
+    const matchFiltro = filtro === 'todos' ? true : filtro === 'sin_leer' ? !m.leido : filtro === 'respondidos' ? !!m.respuesta : m.leido;
     const matchBusqueda = m.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       m.email.toLowerCase().includes(busqueda.toLowerCase()) ||
       m.asunto.toLowerCase().includes(busqueda.toLowerCase());
@@ -66,6 +90,7 @@ export default function AdminMensajesPage() {
   });
 
   const sinLeer = mensajes.filter((m) => !m.leido).length;
+  const respondidos = mensajes.filter((m) => !!m.respuesta).length;
 
   const formatFecha = (fecha) => {
     const d = new Date(fecha);
@@ -83,7 +108,7 @@ export default function AdminMensajesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-extrabold text-gray-800">Mensajes de contacto</h1>
-              <p className="text-gray-400 text-sm mt-1">Gestiona las consultas de tus clientes</p>
+              <p className="text-gray-400 text-sm mt-1">Gestiona y responde las consultas de tus clientes</p>
             </div>
             {sinLeer > 0 && (
               <div className="flex items-center gap-2 bg-red-50 text-red-600 text-xs font-semibold px-4 py-2 rounded-full">
@@ -96,7 +121,7 @@ export default function AdminMensajesPage() {
 
         <div className="p-8">
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-6">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <EmailIcon style={{ fontSize: 24 }} />
@@ -124,6 +149,15 @@ export default function AdminMensajesPage() {
                 <p className="text-gray-400 text-sm">Leidos</p>
               </div>
             </div>
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                <SendIcon style={{ fontSize: 24 }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-800">{respondidos}</p>
+                <p className="text-gray-400 text-sm">Respondidos</p>
+              </div>
+            </div>
           </div>
 
           {/* Filtros */}
@@ -138,11 +172,12 @@ export default function AdminMensajesPage() {
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {[
                 { value: 'todos', label: 'Todos' },
                 { value: 'sin_leer', label: 'Sin leer' },
                 { value: 'leidos', label: 'Leidos' },
+                { value: 'respondidos', label: 'Respondidos' },
               ].map((f) => (
                 <button
                   key={f.value}
@@ -191,11 +226,17 @@ export default function AdminMensajesPage() {
                         <span className="text-gray-400 text-xs whitespace-nowrap">{formatFecha(mensaje.fecha)}</span>
                       </div>
                       <p className="text-gray-500 text-sm mb-2 truncate">{mensaje.email}</p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className={'text-xs font-semibold px-2.5 py-1 rounded-full ' + tipo.color}>
                           {tipo.emoji} {tipo.label}
                         </span>
                         <p className="text-gray-600 text-sm font-medium truncate">{mensaje.asunto}</p>
+                        {mensaje.respuesta && (
+                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-50 text-green-600 flex items-center gap-1">
+                            <CheckCircleIcon style={{ fontSize: 12 }} />
+                            Respondido
+                          </span>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -254,23 +295,51 @@ export default function AdminMensajesPage() {
                 <p className="text-gray-800 font-semibold">{mensajeSeleccionado.asunto}</p>
               </div>
 
-              {/* Mensaje */}
+              {/* Mensaje original */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Mensaje</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Mensaje del cliente</p>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{mensajeSeleccionado.mensaje}</p>
                 </div>
               </div>
 
+              {/* Respuesta ya enviada */}
+              {mensajeSeleccionado.respuesta && (
+                <div>
+                  <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <CheckCircleIcon style={{ fontSize: 14 }} />
+                    Tu respuesta (enviada el {formatFecha(mensajeSeleccionado.respondido_en)})
+                  </p>
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{mensajeSeleccionado.respuesta}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Formulario de respuesta */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  {mensajeSeleccionado.respuesta ? 'Enviar otra respuesta' : 'Responder al cliente'}
+                </p>
+                <textarea
+                  rows={5}
+                  placeholder="Escribe tu respuesta aqui. Se enviara por email al cliente..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 resize-none"
+                  value={respuesta}
+                  onChange={(e) => setRespuesta(e.target.value)}
+                />
+              </div>
+
               {/* Acciones */}
               <div className="flex gap-3 pt-2">
-                <a
-                  href={'mailto:' + mensajeSeleccionado.email + '?subject=Re: ' + mensajeSeleccionado.asunto}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors text-center flex items-center justify-center gap-2"
+                <button
+                  onClick={enviarRespuesta}
+                  disabled={enviando || !respuesta.trim()}
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex items-center justify-center gap-2"
                 >
-                  <EmailIcon style={{ fontSize: 18 }} />
-                  Responder por email
-                </a>
+                  <SendIcon style={{ fontSize: 18 }} />
+                  {enviando ? 'Enviando...' : 'Enviar respuesta por email'}
+                </button>
                 <button
                   onClick={() => setMensajeSeleccionado(null)}
                   className="px-6 py-3 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
