@@ -29,6 +29,7 @@ const contactoRoutes = require('./src/routes/contacto.routes');
 const ratingsRoutes = require('./src/routes/ratings.routes');
 const usuariosRoutes = require('./src/routes/usuarios.routes');
 const uploadRoutes = require('./src/routes/upload.routes');
+const statsPublicasRoutes = require('./src/routes/stats-publicas.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categorias', categoriasRoutes);
@@ -44,6 +45,7 @@ app.use('/api/contacto', contactoRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/stats-publicas', statsPublicasRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
