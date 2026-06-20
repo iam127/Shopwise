@@ -26,12 +26,90 @@ export default function HomePage() {
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [anuncioVisible, setAnuncioVisible] = useState(true);
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  const heroSlides = [
+    {
+      imagen: '/hero-banner.png',
+      badge: 'Bienvenido a Shopwise',
+      titulo: 'Compra de forma',
+      tituloDestacado: 'inteligente',
+      descripcion: 'Descubre miles de productos al mejor precio. Entrega rapida, pagos seguros y soporte 24/7.',
+      botonPrimario: 'Empezar gratis',
+      linkPrimario: '/register',
+      botonSecundario: 'Ver productos',
+      linkSecundario: '/explorar',
+    },
+    {
+      imagen: '/hero-banner-2.png',
+      badge: 'Tecnologia de punta',
+      titulo: 'Los mejores',
+      tituloDestacado: 'gadgets',
+      descripcion: 'Laptops, smartphones, audifonos y mas. La tecnologia que necesitas al mejor precio del mercado.',
+      botonPrimario: 'Ver electronica',
+      linkPrimario: '/categorias',
+      botonSecundario: 'Explorar todo',
+      linkSecundario: '/explorar',
+    },
+    {
+      imagen: '/hero-banner-3.png',
+      badge: 'Nueva coleccion',
+      titulo: 'Moda y estilo',
+      tituloDestacado: 'para ti',
+      descripcion: 'Descubre las ultimas tendencias en ropa y accesorios. Estilo y calidad en cada prenda.',
+      botonPrimario: 'Ver moda',
+      linkPrimario: '/categorias',
+      botonSecundario: 'Explorar todo',
+      linkSecundario: '/explorar',
+    },
+    {
+      imagen: '/hero-banner-4.png',
+      badge: 'Para tu hogar',
+      titulo: 'Transforma tu',
+      tituloDestacado: 'espacio',
+      descripcion: 'Decoracion, muebles y mas. Todo lo que necesitas para hacer de tu hogar un lugar especial.',
+      botonPrimario: 'Ver hogar',
+      linkPrimario: '/categorias',
+      botonSecundario: 'Explorar todo',
+      linkSecundario: '/explorar',
+    },
+    {
+      imagen: '/hero-banner-5.png',
+      badge: 'Oferta especial',
+      titulo: 'Descuentos por',
+      tituloDestacado: 'tiempo limitado',
+      descripcion: 'Aprovecha nuestras ofertas exclusivas. Los mejores precios solo por tiempo limitado.',
+      botonPrimario: 'Ver ofertas',
+      linkPrimario: '/explorar',
+      botonSecundario: 'Registrarme',
+      linkSecundario: '/register',
+    },
+    {
+      imagen: '/hero-banner-6.png',
+      badge: 'Envio garantizado',
+      titulo: 'Entrega rapida y',
+      tituloDestacado: 'segura',
+      descripcion: 'Recibe tus productos en 24-48 horas con seguimiento en tiempo real a todo el Peru.',
+      botonPrimario: 'Empezar ahora',
+      linkPrimario: '/register',
+      botonSecundario: 'Ver productos',
+      linkSecundario: '/explorar',
+    },
+  ];
 
   useEffect(() => {
     api.get('/productos').then((res) => setProductos(res.data)).catch(() => {});
     api.get('/categorias').then((res) => setCategorias(res.data)).catch(() => {});
     api.get('/stats-publicas').then((res) => setStatsPublicas(res.data)).catch(() => {});
     api.get('/testimonios').then((res) => setTestimonios(res.data)).catch(() => {});
+  }, []);
+
+  // Carrusel del hero - rota cada 6 segundos
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 6000);
+    return () => clearInterval(timer);
   }, []);
 
   // Contador de oferta persistente con localStorage
@@ -96,6 +174,8 @@ export default function HomePage() {
     { nombre: 'PayPal', img: '/paypal.png' },
   ];
 
+  const slideActual = heroSlides[heroIndex];
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
@@ -114,34 +194,43 @@ export default function HomePage() {
 
       <NavbarPublic />
 
-      {/* Hero */}
+      {/* Hero con carrusel dinamico */}
       <section className="relative h-screen min-h-[600px] flex items-center overflow-hidden">
+        {/* Imagenes de fondo */}
         <div className="absolute inset-0">
-          <img src="/hero-banner.png" alt="Hero" className="w-full h-full object-cover" />
+          {heroSlides.map((slide, i) => (
+            <img
+              key={slide.imagen}
+              src={slide.imagen}
+              alt="Hero"
+              className={'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ' + (i === heroIndex ? 'opacity-100' : 'opacity-0')}
+            />
+          ))}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-950/90 via-blue-900/70 to-transparent" />
         </div>
+
+        {/* Contenido dinamico */}
         <div className="relative max-w-7xl mx-auto px-6 z-10 w-full">
-          <div className="max-w-2xl">
+          <div key={heroIndex} className="max-w-2xl animate-[fadeIn_0.8s_ease-in-out]">
             <span className="text-blue-300 font-semibold text-sm uppercase tracking-widest mb-6 block">
-              Bienvenido a Shopwise
+              {slideActual.badge}
             </span>
             <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
-              Compra de forma<br />
+              {slideActual.titulo}<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                inteligente
+                {slideActual.tituloDestacado}
               </span>
             </h1>
             <p className="text-blue-200 text-lg md:text-xl mb-8 leading-relaxed">
-              Descubre miles de productos al mejor precio.<br />
-              Entrega rapida, pagos seguros y soporte 24/7.
+              {slideActual.descripcion}
             </p>
             <div className="flex gap-4 flex-wrap">
-              <Link href="/register" className="group bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-500 transition-all flex items-center gap-2 shadow-xl shadow-blue-900/50">
-                Empezar gratis
+              <Link href={slideActual.linkPrimario} className="group bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-500 transition-all flex items-center gap-2 shadow-xl shadow-blue-900/50">
+                {slideActual.botonPrimario}
                 <ArrowForwardIcon style={{ fontSize: 20 }} className="group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/explorar" className="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/20">
-                Ver productos
+              <Link href={slideActual.linkSecundario} className="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/20">
+                {slideActual.botonSecundario}
               </Link>
             </div>
             <div className="flex items-center gap-8 mt-10">
@@ -157,6 +246,18 @@ export default function HomePage() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Indicadores del carrusel */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setHeroIndex(i)}
+              className={'h-1.5 rounded-full transition-all duration-300 ' + (i === heroIndex ? 'w-8 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60')}
+              aria-label={'Ir a slide ' + (i + 1)}
+            />
+          ))}
         </div>
       </section>
 
