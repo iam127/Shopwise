@@ -47,7 +47,13 @@ const getPedidos = async (req, res) => {
 const getPedidoById = async (req, res) => {
   const { id } = req.params;
   try {
-    const pedido = await pool.query('SELECT * FROM pedidos WHERE id = $1', [id]);
+    const pedido = await pool.query(`
+      SELECT p.*, u.nombre AS cliente_nombre, u.email AS cliente_email,
+        u.telefono AS cliente_telefono, u.direccion AS cliente_direccion
+      FROM pedidos p
+      JOIN usuarios u ON p.usuario_id = u.id
+      WHERE p.id = $1
+    `, [id]);
     if (pedido.rows.length === 0) return res.status(404).json({ message: 'Pedido no encontrado' });
     const items = await pool.query(`
       SELECT ip.*, p.nombre FROM items_pedido ip
