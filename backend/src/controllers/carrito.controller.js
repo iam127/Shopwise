@@ -9,7 +9,11 @@ const getCarrito = async (req, res) => {
     }
     const carrito_id = carrito.rows[0].id;
     const items = await pool.query(`
-      SELECT ic.*, p.nombre, p.precio, p.imagen_url 
+      SELECT ic.*, p.nombre, p.precio, p.imagen_url, p.descuento,
+        CASE WHEN p.descuento > 0 AND (p.oferta_fin IS NULL OR p.oferta_fin > NOW())
+          THEN ROUND(p.precio - (p.precio * p.descuento / 100.0), 2)
+          ELSE p.precio
+        END AS precio_final
       FROM items_carrito ic
       JOIN productos p ON ic.producto_id = p.id
       WHERE ic.carrito_id = $1

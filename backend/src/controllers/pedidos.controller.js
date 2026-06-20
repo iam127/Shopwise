@@ -7,12 +7,17 @@ const createPedido = async (req, res) => {
     if (carrito.rows.length === 0) return res.status(404).json({ message: 'Carrito no encontrado' });
     const carrito_id = carrito.rows[0].id;
     const items = await pool.query(`
-      SELECT ic.*, p.precio FROM items_carrito ic
+      SELECT ic.*, p.precio, p.descuento, p.oferta_fin,
+        CASE WHEN p.descuento > 0 AND (p.oferta_fin IS NULL OR p.oferta_fin > NOW())
+          THEN ROUND(p.precio - (p.precio * p.descuento / 100.0), 2)
+          ELSE p.precio
+        END AS precio_final
+      FROM items_carrito ic
       JOIN productos p ON ic.producto_id = p.id
       WHERE ic.carrito_id = $1
     `, [carrito_id]);
     if (items.rows.length === 0) return res.status(400).json({ message: 'El carrito está vacío' });
-    const total = items.rows.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+    const total = items.rows.reduce((sum, item) => sum + item.precio_final * item.cantidad, 0);
     const pedido = await pool.query(
       'INSERT INTO pedidos (usuario_id, total, estado) VALUES ($1, $2, $3) RETURNING *',
       [usuario_id, total, 'pendiente']
@@ -21,7 +26,7 @@ const createPedido = async (req, res) => {
     for (const item of items.rows) {
       await pool.query(
         'INSERT INTO items_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)',
-        [pedido_id, item.producto_id, item.cantidad, item.precio]
+        [pedido_id, item.producto_id, item.cantidad, item.precio_final]
       );
     }
     await pool.query('DELETE FROM items_carrito WHERE carrito_id = $1', [carrito_id]);
