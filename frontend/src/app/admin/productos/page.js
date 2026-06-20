@@ -17,6 +17,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 export default function AdminProductosPage() {
   const { user } = useAuth();
@@ -34,6 +36,13 @@ export default function AdminProductosPage() {
   const [loading, setLoading] = useState(false);
   const [procesando, setProcesando] = useState(null);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
+
+  // Modal de oferta
+  const [modalOfertaAbierto, setModalOfertaAbierto] = useState(false);
+  const [productoOferta, setProductoOferta] = useState(null);
+  const [descuento, setDescuento] = useState(0);
+  const [ofertaFin, setOfertaFin] = useState('');
+  const [guardandoOferta, setGuardandoOferta] = useState(false);
 
   useEffect(() => {
     if (user && user.rol !== 'admin') router.push('/productos');
@@ -133,6 +142,64 @@ export default function AdminProductosPage() {
     }
   };
 
+  const abrirModalOferta = (producto) => {
+    setProductoOferta(producto);
+    setDescuento(producto.descuento || 0);
+    // Formatear fecha para datetime-local input
+    if (producto.oferta_fin) {
+      const fecha = new Date(producto.oferta_fin);
+      const fechaLocal = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setOfertaFin(fechaLocal);
+    } else {
+      setOfertaFin('');
+    }
+    setModalOfertaAbierto(true);
+  };
+
+  const cerrarModalOferta = () => {
+    setModalOfertaAbierto(false);
+    setProductoOferta(null);
+    setDescuento(0);
+    setOfertaFin('');
+  };
+
+  const handleGuardarOferta = async (e) => {
+    e.preventDefault();
+    if (descuento > 0 && !ofertaFin) {
+      toast.error('Debes especificar cuando termina la oferta');
+      return;
+    }
+    setGuardandoOferta(true);
+    try {
+      const res = await api.put('/productos/' + productoOferta.id + '/oferta', {
+        descuento: Number(descuento),
+        oferta_fin: descuento > 0 ? new Date(ofertaFin).toISOString() : null,
+      });
+      setProductos((prev) => prev.map((p) => p.id === productoOferta.id ? { ...p, ...res.data } : p));
+      toast.success('Oferta actualizada correctamente');
+      cerrarModalOferta();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al guardar la oferta');
+    } finally {
+      setGuardandoOferta(false);
+    }
+  };
+
+  const handleQuitarOferta = async (producto) => {
+    if (!confirm('Quitar la oferta de "' + producto.nombre + '"?')) return;
+    try {
+      const res = await api.delete('/productos/' + producto.id + '/oferta');
+      setProductos((prev) => prev.map((p) => p.id === producto.id ? { ...p, ...res.data } : p));
+      toast.success('Oferta eliminada');
+    } catch (err) {
+      toast.error('Error al quitar la oferta');
+    }
+  };
+
+  const tieneOfertaActiva = (p) => {
+    return p.descuento > 0 && (!p.oferta_fin || new Date(p.oferta_fin) > new Date());
+  };
+
   const productosFiltrados = productos.filter((p) => {
     const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const matchCategoria = categoriaFiltro ? p.categoria_id === parseInt(categoriaFiltro) : true;
@@ -143,6 +210,7 @@ export default function AdminProductosPage() {
   const sinStock = productos.filter((p) => p.stock === 0).length;
   const stockBajo = productos.filter((p) => p.stock > 0 && p.stock <= 5).length;
   const inactivos = productos.filter((p) => !p.activo).length;
+  const conOferta = productos.filter((p) => tieneOfertaActiva(p)).length;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -168,7 +236,7 @@ export default function AdminProductosPage() {
 
         <div className="p-8">
           {/* Stats rapidos */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-5 mb-6">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <Inventory2Icon style={{ fontSize: 24 }} />
@@ -203,6 +271,15 @@ export default function AdminProductosPage() {
               <div>
                 <p className="text-2xl font-extrabold text-gray-800">{inactivos}</p>
                 <p className="text-gray-400 text-sm">Desactivados</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+                <LocalOfferIcon style={{ fontSize: 24 }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-800">{conOferta}</p>
+                <p className="text-gray-400 text-sm">Con oferta activa</p>
               </div>
             </div>
           </div>
@@ -258,6 +335,7 @@ export default function AdminProductosPage() {
                   <th className="p-4 text-left font-semibold text-gray-600">Categoria</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Precio</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Stock</th>
+                  <th className="p-4 text-left font-semibold text-gray-600">Oferta</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Visibilidad</th>
                   <th className="p-4 text-right font-semibold text-gray-600">Acciones</th>
                 </tr>
@@ -265,82 +343,112 @@ export default function AdminProductosPage() {
               <tbody>
                 {productosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-10 text-center text-gray-400">
+                    <td colSpan={7} className="p-10 text-center text-gray-400">
                       No se encontraron productos
                     </td>
                   </tr>
                 ) : (
-                  productosFiltrados.map((p) => (
-                    <tr key={p.id} className={'border-b border-gray-50 hover:bg-gray-50 transition-colors ' + (!p.activo ? 'opacity-60' : '')}>
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                            {p.imagen_url ? (
-                              <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                <Inventory2Icon style={{ fontSize: 20 }} />
-                              </div>
-                            )}
+                  productosFiltrados.map((p) => {
+                    const ofertaActiva = tieneOfertaActiva(p);
+                    return (
+                      <tr key={p.id} className={'border-b border-gray-50 hover:bg-gray-50 transition-colors ' + (!p.activo ? 'opacity-60' : '')}>
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                              {p.imagen_url ? (
+                                <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <Inventory2Icon style={{ fontSize: 20 }} />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-800">{p.nombre}</p>
+                              <p className="text-gray-400 text-xs line-clamp-1 max-w-xs">{p.descripcion}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-800">{p.nombre}</p>
-                            <p className="text-gray-400 text-xs line-clamp-1 max-w-xs">{p.descripcion}</p>
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
+                            {p.categoria}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          {ofertaActiva ? (
+                            <div>
+                              <p className="text-gray-400 text-xs line-through">S/. {p.precio}</p>
+                              <p className="font-bold text-green-600">S/. {(p.precio - (p.precio * p.descuento / 100)).toFixed(2)}</p>
+                            </div>
+                          ) : (
+                            <p className="font-bold text-gray-800">S/. {p.precio}</p>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (
+                            p.stock === 0 ? 'bg-red-50 text-red-600' :
+                            p.stock <= 5 ? 'bg-orange-50 text-orange-600' :
+                            'bg-green-50 text-green-600'
+                          )}>
+                            {p.stock} unidades
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          {ofertaActiva ? (
+                            <span className="bg-red-50 text-red-600 text-xs font-bold px-3 py-1 rounded-full">
+                              -{p.descuento}%
+                            </span>
+                          ) : (
+                            <span className="text-gray-300 text-xs">Sin oferta</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (
+                            p.activo ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
+                          )}>
+                            {p.activo ? 'Visible' : 'Oculto'}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => abrirModalOferta(p)}
+                              title="Configurar oferta"
+                              className={'w-9 h-9 rounded-xl flex items-center justify-center transition-colors ' + (
+                                ofertaActiva ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                              )}
+                            >
+                              <LocalOfferIcon style={{ fontSize: 18 }} />
+                            </button>
+                            <button
+                              onClick={() => handleToggleActivo(p)}
+                              disabled={procesando === p.id}
+                              title={p.activo ? 'Ocultar del catalogo' : 'Mostrar en catalogo'}
+                              className={'w-9 h-9 rounded-xl flex items-center justify-center transition-colors ' + (
+                                p.activo
+                                  ? 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                  : 'bg-green-50 text-green-600 hover:bg-green-100'
+                              )}
+                            >
+                              {p.activo ? <VisibilityOffIcon style={{ fontSize: 18 }} /> : <VisibilityIcon style={{ fontSize: 18 }} />}
+                            </button>
+                            <button
+                              onClick={() => handleEdit(p)}
+                              className="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-colors"
+                            >
+                              <EditIcon style={{ fontSize: 18 }} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(p.id)}
+                              className="w-9 h-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center hover:bg-red-100 transition-colors"
+                            >
+                              <DeleteIcon style={{ fontSize: 18 }} />
+                            </button>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
-                          {p.categoria}
-                        </span>
-                      </td>
-                      <td className="p-4 font-bold text-gray-800">S/. {p.precio}</td>
-                      <td className="p-4">
-                        <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (
-                          p.stock === 0 ? 'bg-red-50 text-red-600' :
-                          p.stock <= 5 ? 'bg-orange-50 text-orange-600' :
-                          'bg-green-50 text-green-600'
-                        )}>
-                          {p.stock} unidades
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (
-                          p.activo ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
-                        )}>
-                          {p.activo ? 'Visible' : 'Oculto'}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleToggleActivo(p)}
-                            disabled={procesando === p.id}
-                            title={p.activo ? 'Ocultar del catalogo' : 'Mostrar en catalogo'}
-                            className={'w-9 h-9 rounded-xl flex items-center justify-center transition-colors ' + (
-                              p.activo
-                                ? 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-                                : 'bg-green-50 text-green-600 hover:bg-green-100'
-                            )}
-                          >
-                            {p.activo ? <VisibilityOffIcon style={{ fontSize: 18 }} /> : <VisibilityIcon style={{ fontSize: 18 }} />}
-                          </button>
-                          <button
-                            onClick={() => handleEdit(p)}
-                            className="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-colors"
-                          >
-                            <EditIcon style={{ fontSize: 18 }} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p.id)}
-                            className="w-9 h-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center hover:bg-red-100 transition-colors"
-                          >
-                            <DeleteIcon style={{ fontSize: 18 }} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -348,7 +456,7 @@ export default function AdminProductosPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal de producto */}
       {modalAbierto && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -481,6 +589,81 @@ export default function AdminProductosPage() {
                 >
                   Cancelar
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de oferta */}
+      {modalOfertaAbierto && productoOferta && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-extrabold text-gray-800">Configurar oferta</h3>
+                <p className="text-gray-400 text-sm">{productoOferta.nombre}</p>
+              </div>
+              <button onClick={cerrarModalOferta} className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <CloseIcon style={{ fontSize: 18 }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleGuardarOferta} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Descuento (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="90"
+                  placeholder="0"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                  value={descuento}
+                  onChange={(e) => setDescuento(e.target.value)}
+                />
+                <p className="text-gray-400 text-xs mt-1">Entre 0% (sin oferta) y 90% maximo</p>
+              </div>
+
+              {Number(descuento) > 0 && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">La oferta termina el</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                      value={ofertaFin}
+                      onChange={(e) => setOfertaFin(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                    <p className="text-xs text-green-700 font-semibold mb-1">Vista previa</p>
+                    <p className="text-gray-400 text-xs line-through">S/. {productoOferta.precio}</p>
+                    <p className="text-green-600 font-extrabold text-lg">
+                      S/. {(productoOferta.precio - (productoOferta.precio * descuento / 100)).toFixed(2)}
+                    </p>
+                  </div>
+                </>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={guardandoOferta}
+                  className="flex-1 bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+                >
+                  {guardandoOferta ? 'Guardando...' : 'Guardar oferta'}
+                </button>
+                {tieneOfertaActiva(productoOferta) && (
+                  <button
+                    type="button"
+                    onClick={() => { handleQuitarOferta(productoOferta); cerrarModalOferta(); }}
+                    className="px-4 py-3.5 border border-red-200 text-red-600 rounded-xl font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
+                  >
+                    <RemoveCircleOutlineIcon style={{ fontSize: 18 }} />
+                  </button>
+                )}
               </div>
             </form>
           </div>
