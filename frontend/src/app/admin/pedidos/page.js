@@ -13,6 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import PersonIcon from '@mui/icons-material/Person';
 
 export default function AdminPedidosPage() {
   const { user } = useAuth();
@@ -237,6 +238,29 @@ export default function AdminPedidosPage() {
               <button onClick={() => setPedidoSeleccionado(null)} className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
                 <CloseIcon style={{ fontSize: 18 }} />
               </button>
+            </div>
+
+            {/* Info del cliente */}
+            <div className="px-6 pt-6">
+              <div className="bg-gray-50 rounded-2xl p-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  <PersonIcon style={{ fontSize: 14 }} />
+                  Datos del cliente
+                </p>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-700"><span className="font-semibold">Nombre:</span> {pedidoSeleccionado.pedido.cliente_nombre}</p>
+                  <p className="text-sm text-gray-700"><span className="font-semibold">Email:</span> {pedidoSeleccionado.pedido.cliente_email}</p>
+                  {pedidoSeleccionado.pedido.cliente_telefono && (
+                    <p className="text-sm text-gray-700"><span className="font-semibold">Teléfono:</span> {pedidoSeleccionado.pedido.cliente_telefono}</p>
+                  )}
+                  {pedidoSeleccionado.pedido.cliente_direccion && (
+                    <p className="text-sm text-gray-700"><span className="font-semibold">Dirección:</span> {pedidoSeleccionado.pedido.cliente_direccion}</p>
+                  )}
+                  {!pedidoSeleccionado.pedido.cliente_telefono && !pedidoSeleccionado.pedido.cliente_direccion && (
+                    <p className="text-sm text-gray-400 italic">El cliente no ha completado su teléfono ni dirección</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="p-6 space-y-5">
