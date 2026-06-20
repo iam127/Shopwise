@@ -19,6 +19,7 @@ import RatingStars from '@/components/RatingStars';
 export default function HomePage() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [statsPublicas, setStatsPublicas] = useState({ totalProductos: 0, totalClientes: 0, ratingPromedio: 0, totalRatings: 0 });
   const [tiempo, setTiempo] = useState({ horas: 5, minutos: 30, segundos: 0 });
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
@@ -28,6 +29,7 @@ export default function HomePage() {
   useEffect(() => {
     api.get('/productos').then((res) => setProductos(res.data)).catch(() => {});
     api.get('/categorias').then((res) => setCategorias(res.data)).catch(() => {});
+    api.get('/stats-publicas').then((res) => setStatsPublicas(res.data)).catch(() => {});
   }, []);
 
   // Contador de oferta persistente con localStorage
@@ -148,9 +150,9 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-8 mt-10">
               {[
-                { num: '500+', label: 'Productos' },
-                { num: '1K+', label: 'Clientes' },
-                { num: '4.9', label: 'Valoracion' },
+                { num: statsPublicas.totalProductos + '+', label: 'Productos' },
+                { num: statsPublicas.totalClientes + '+', label: 'Clientes' },
+                { num: statsPublicas.totalRatings > 0 ? statsPublicas.ratingPromedio : 'N/A', label: 'Valoracion' },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="text-2xl font-extrabold text-white">{stat.num}</p>
