@@ -17,6 +17,11 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import BadgeIcon from '@mui/icons-material/Badge';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 export default function PerfilPage() {
   const { user, logout } = useAuth();
@@ -28,6 +33,14 @@ export default function PerfilPage() {
   const [showPasswords, setShowPasswords] = useState({ actual: false, nueva: false, confirmar: false });
   const [savingPerfil, setSavingPerfil] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+
+  // Testimonio
+  const [miTestimonio, setMiTestimonio] = useState(null);
+  const [testimonioLoading, setTestimonioLoading] = useState(true);
+  const [textoTestimonio, setTextoTestimonio] = useState('');
+  const [ratingTestimonio, setRatingTestimonio] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [enviandoTestimonio, setEnviandoTestimonio] = useState(false);
 
   useEffect(() => {
     api.get('/perfil')
@@ -42,6 +55,11 @@ export default function PerfilPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    api.get('/testimonios/mi-testimonio')
+      .then((res) => setMiTestimonio(res.data))
+      .catch(() => {})
+      .finally(() => setTestimonioLoading(false));
   }, []);
 
   const handleUpdatePerfil = async (e) => {
@@ -79,6 +97,28 @@ export default function PerfilPage() {
       toast.error(err.response?.data?.message || 'Error al actualizar contraseña');
     }
     setSavingPassword(false);
+  };
+
+  const handleEnviarTestimonio = async (e) => {
+    e.preventDefault();
+    if (ratingTestimonio === 0) {
+      toast.error('Selecciona una calificacion');
+      return;
+    }
+    if (!textoTestimonio.trim()) {
+      toast.error('Escribe tu opinion');
+      return;
+    }
+    setEnviandoTestimonio(true);
+    try {
+      const res = await api.post('/testimonios', { texto: textoTestimonio, rating: ratingTestimonio });
+      setMiTestimonio(res.data.testimonio);
+      toast.success('Gracias por tu opinion! Sera revisada antes de publicarse.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al enviar tu opinion');
+    } finally {
+      setEnviandoTestimonio(false);
+    }
   };
 
   if (loading) {
@@ -196,6 +236,90 @@ export default function PerfilPage() {
               {savingPerfil ? 'Guardando...' : 'Guardar cambios'}
             </button>
           </form>
+        </div>
+
+        {/* Tu opinion sobre Shopwise */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+          <div className="flex items-center gap-2 mb-6">
+            <RateReviewIcon className="text-blue-500" style={{ fontSize: 22 }} />
+            <h2 className="text-lg font-bold text-gray-800">Tu opinion sobre Shopwise</h2>
+          </div>
+
+          {testimonioLoading ? (
+            <div className="py-6 text-center">
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            </div>
+          ) : miTestimonio ? (
+            <div className={'rounded-xl p-5 border ' + (miTestimonio.aprobado ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200')}>
+              <div className="flex items-center gap-1 mb-3">
+                {[1,2,3,4,5].map((s) => (
+                  <StarIcon key={s} className={s <= miTestimonio.rating ? 'text-yellow-400' : 'text-gray-200'} style={{ fontSize: 18 }} />
+                ))}
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">"{miTestimonio.texto}"</p>
+              <div className="flex items-center gap-2">
+                {miTestimonio.aprobado ? (
+                  <>
+                    <CheckCircleIcon className="text-green-600" style={{ fontSize: 18 }} />
+                    <p className="text-green-700 text-sm font-semibold">Tu opinion ya esta publicada en la web</p>
+                  </>
+                ) : (
+                  <>
+                    <HourglassEmptyIcon className="text-orange-600" style={{ fontSize: 18 }} />
+                    <p className="text-orange-700 text-sm font-semibold">Tu opinion esta en revision</p>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleEnviarTestimonio} className="space-y-4">
+              <p className="text-gray-400 text-sm">Comparte tu experiencia con Shopwise. Tu opinion sera revisada antes de publicarse en la pagina principal.</p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tu calificacion</label>
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setRatingTestimonio(s)}
+                      onMouseEnter={() => setHoverRating(s)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="transition-transform hover:scale-110"
+                    >
+                      {s <= (hoverRating || ratingTestimonio) ? (
+                        <StarIcon className="text-yellow-400" style={{ fontSize: 32 }} />
+                      ) : (
+                        <StarBorderIcon className="text-gray-300" style={{ fontSize: 32 }} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tu opinion</label>
+                <textarea
+                  rows={4}
+                  placeholder="Cuentanos tu experiencia comprando en Shopwise..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 resize-none"
+                  value={textoTestimonio}
+                  onChange={(e) => setTextoTestimonio(e.target.value)}
+                  maxLength={300}
+                />
+                <p className="text-gray-400 text-xs mt-1 text-right">{textoTestimonio.length}/300</p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={enviandoTestimonio}
+                className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors disabled:bg-gray-200"
+              >
+                <RateReviewIcon style={{ fontSize: 18 }} />
+                {enviandoTestimonio ? 'Enviando...' : 'Enviar mi opinion'}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Formulario de contraseña */}
