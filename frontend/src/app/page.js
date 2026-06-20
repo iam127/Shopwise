@@ -20,6 +20,7 @@ export default function HomePage() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [statsPublicas, setStatsPublicas] = useState({ totalProductos: 0, totalClientes: 0, ratingPromedio: 0, totalRatings: 0 });
+  const [testimonios, setTestimonios] = useState([]);
   const [tiempo, setTiempo] = useState({ horas: 5, minutos: 30, segundos: 0 });
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
@@ -30,6 +31,7 @@ export default function HomePage() {
     api.get('/productos').then((res) => setProductos(res.data)).catch(() => {});
     api.get('/categorias').then((res) => setCategorias(res.data)).catch(() => {});
     api.get('/stats-publicas').then((res) => setStatsPublicas(res.data)).catch(() => {});
+    api.get('/testimonios').then((res) => setTestimonios(res.data)).catch(() => {});
   }, []);
 
   // Contador de oferta persistente con localStorage
@@ -85,12 +87,6 @@ export default function HomePage() {
     { imagen: '/banner-electronica.png', bg: 'from-blue-600 to-blue-800', emoji: '💻', desc: 'Los mejores gadgets' },
     { imagen: '/banner-ropa.png', bg: 'from-purple-600 to-purple-800', emoji: '👗', desc: 'Moda y estilo' },
     { imagen: '/banner-hogar.png', bg: 'from-orange-500 to-orange-700', emoji: '🏠', desc: 'Todo para tu hogar' },
-  ];
-
-  const testimonios = [
-    { nombre: 'Carlos M.', cargo: 'Cliente frecuente', texto: 'Excelente variedad de productos. Encontre exactamente lo que buscaba a un precio increible. El envio fue rapidisimo.', avatar: 'C', color: 'bg-blue-600' },
-    { nombre: 'Maria L.', cargo: 'Compradora verificada', texto: 'La mejor tienda online que he encontrado. Productos de calidad, precios justos y atencion al cliente excepcional.', avatar: 'M', color: 'bg-purple-600' },
-    { nombre: 'Jose R.', cargo: 'Cliente habitual', texto: 'Me encanta Shopwise. Compro seguido y siempre quedo satisfecho. Totalmente recomendado para todos.', avatar: 'J', color: 'bg-green-600' },
   ];
 
   const pagos = [
@@ -302,7 +298,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonios */}
+      {/* Testimonios reales */}
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0">
           <img src="/bg-testimonios.png" alt="fondo" className="w-full h-full object-cover" />
@@ -312,29 +308,36 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <span className="text-blue-300 font-semibold text-sm uppercase tracking-widest">Opiniones</span>
             <h2 className="text-4xl font-extrabold text-white mt-2">Lo que dicen nuestros clientes</h2>
-            <p className="text-blue-200 mt-3">Miles de clientes satisfechos confian en Shopwise</p>
+            <p className="text-blue-200 mt-3">Opiniones reales de clientes verificados de Shopwise</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonios.map((t, i) => (
-              <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-colors">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map((s) => (
-                    <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 16 }} />
-                  ))}
-                </div>
-                <p className="text-white/90 text-sm leading-relaxed mb-6">"{t.texto}"</p>
-                <div className="flex items-center gap-3">
-                  <div className={'w-10 h-10 ' + t.color + ' rounded-full flex items-center justify-center text-white font-bold text-sm'}>
-                    {t.avatar}
+          {testimonios.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-white/70 text-lg">Aun no hay opiniones publicadas</p>
+              <p className="text-blue-300 text-sm mt-2">Se el primero en compartir tu experiencia con Shopwise</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonios.map((t) => (
+                <div key={t.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-colors">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1,2,3,4,5].map((s) => (
+                      <StarIcon key={s} className={s <= t.rating ? 'text-yellow-400' : 'text-white/20'} style={{ fontSize: 16 }} />
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-white font-semibold text-sm">{t.nombre}</p>
-                    <p className="text-blue-300 text-xs">{t.cargo}</p>
+                  <p className="text-white/90 text-sm leading-relaxed mb-6">"{t.texto}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {t.nombre.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{t.nombre}</p>
+                      <p className="text-blue-300 text-xs">Cliente verificado</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
