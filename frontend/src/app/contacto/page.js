@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NavbarPublic from '@/components/NavbarPublic';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -28,6 +28,11 @@ export default function ContactoPage() {
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [testimonios, setTestimonios] = useState([]);
+
+  useEffect(() => {
+    api.get('/testimonios').then((res) => setTestimonios(res.data)).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,12 +71,6 @@ export default function ContactoPage() {
     { pregunta: 'Cuales son los metodos de pago?', respuesta: 'Aceptamos tarjetas de credito y debito (Visa, Mastercard, Amex), transferencias bancarias y pagos simulados a traves de nuestra plataforma.' },
     { pregunta: 'Como puedo rastrear mi pedido?', respuesta: 'Una vez realizado tu pedido podras ver el estado en tu perfil en la seccion Mis pedidos. Tambien recibiras notificaciones por correo electronico.' },
     { pregunta: 'Los productos tienen garantia?', respuesta: 'Si, todos nuestros productos tienen 30 dias de garantia. En caso de defecto de fabrica realizamos el cambio sin costo adicional.' },
-  ];
-
-  const testimonios = [
-    { nombre: 'Ana G.', cargo: 'Cliente verificada', texto: 'El soporte fue increible. Respondieron en menos de 1 hora y resolvieron mi problema de inmediato.', avatar: 'A' },
-    { nombre: 'Luis M.', cargo: 'Cliente frecuente', texto: 'Muy facil contactarlos. El chat de WhatsApp es super rapido y efectivo.', avatar: 'L' },
-    { nombre: 'Sofia R.', cargo: 'Cliente habitual', texto: 'Excelente atencion al cliente. Se nota que les importa la satisfaccion del usuario.', avatar: 'S' },
   ];
 
   return (
@@ -340,30 +339,41 @@ export default function ContactoPage() {
         </div>
       </section>
 
-      {/* Testimonios */}
+      {/* Testimonios reales */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-blue-500 font-semibold text-sm uppercase tracking-widest">Opiniones</span>
-            <h2 className="text-3xl font-extrabold text-gray-900 mt-2">Lo que dicen sobre nuestro soporte</h2>
+            <h2 className="text-3xl font-extrabold text-gray-900 mt-2">Lo que dicen nuestros clientes</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonios.map((t, i) => (
-              <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map((s) => <StarIcon key={s} className="text-yellow-400" style={{ fontSize: 16 }} />)}
-                </div>
-                <p className="text-gray-500 text-sm leading-relaxed mb-4">"{t.texto}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">{t.avatar}</div>
-                  <div>
-                    <p className="text-gray-800 font-semibold text-sm">{t.nombre}</p>
-                    <p className="text-gray-400 text-xs">{t.cargo}</p>
+          {testimonios.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-400 text-lg">Aun no hay opiniones publicadas</p>
+              <p className="text-blue-500 text-sm mt-2">Se el primero en compartir tu experiencia con Shopwise</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonios.map((t) => (
+                <div key={t.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1,2,3,4,5].map((s) => (
+                      <StarIcon key={s} className={s <= t.rating ? 'text-yellow-400' : 'text-gray-200'} style={{ fontSize: 16 }} />
+                    ))}
+                  </div>
+                  <p className="text-gray-500 text-sm leading-relaxed mb-4">"{t.texto}"</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {t.nombre.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-semibold text-sm">{t.nombre}</p>
+                      <p className="text-gray-400 text-xs">Cliente verificado</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
