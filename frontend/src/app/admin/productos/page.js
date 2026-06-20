@@ -18,7 +18,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 export default function AdminProductosPage() {
   const { user } = useAuth();
@@ -661,7 +661,7 @@ export default function AdminProductosPage() {
                     onClick={() => { handleQuitarOferta(productoOferta); cerrarModalOferta(); }}
                     className="px-4 py-3.5 border border-red-200 text-red-600 rounded-xl font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
                   >
-                    <RemoveCircleOutlineIcon style={{ fontSize: 18 }} />
+                    <CancelIcon style={{ fontSize: 18 }} />
                   </button>
                 )}
               </div>

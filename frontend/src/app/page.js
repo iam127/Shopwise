@@ -21,7 +21,8 @@ export default function HomePage() {
   const [categorias, setCategorias] = useState([]);
   const [statsPublicas, setStatsPublicas] = useState({ totalProductos: 0, totalClientes: 0, ratingPromedio: 0, totalRatings: 0 });
   const [testimonios, setTestimonios] = useState([]);
-  const [tiempo, setTiempo] = useState({ horas: 5, minutos: 30, segundos: 0 });
+  const [ofertas, setOfertas] = useState([]);
+  const [tiempo, setTiempo] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const [email, setEmail] = useState('');
   const [newsletterEnviado, setNewsletterEnviado] = useState(false);
   const [newsletterLoading, setNewsletterLoading] = useState(false);
@@ -102,6 +103,7 @@ export default function HomePage() {
     api.get('/categorias').then((res) => setCategorias(res.data)).catch(() => {});
     api.get('/stats-publicas').then((res) => setStatsPublicas(res.data)).catch(() => {});
     api.get('/testimonios').then((res) => setTestimonios(res.data)).catch(() => {});
+    api.get('/productos/ofertas').then((res) => setOfertas(res.data)).catch(() => {});
   }, []);
 
   // Carrusel del hero - rota cada 6 segundos
@@ -112,36 +114,35 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Contador de oferta persistente con localStorage
+  // Contador real basado en la oferta con fecha de fin mas proxima
   useEffect(() => {
-    const OFERTA_DURACION = 5 * 60 * 60 * 1000 + 30 * 60 * 1000; // 5h 30m en ms
-    let finOferta = localStorage.getItem('finOferta');
+    if (ofertas.length === 0) return;
 
-    if (!finOferta || Date.now() > parseInt(finOferta)) {
-      finOferta = Date.now() + OFERTA_DURACION;
-      localStorage.setItem('finOferta', finOferta);
-    } else {
-      finOferta = parseInt(finOferta);
-    }
+    const ofertasConFecha = ofertas.filter((o) => o.oferta_fin);
+    if (ofertasConFecha.length === 0) return;
+
+    const proximaFin = ofertasConFecha.reduce((min, o) => {
+      const fin = new Date(o.oferta_fin).getTime();
+      return fin < min ? fin : min;
+    }, new Date(ofertasConFecha[0].oferta_fin).getTime());
 
     const actualizar = () => {
-      const restante = finOferta - Date.now();
+      const restante = proximaFin - Date.now();
       if (restante <= 0) {
-        const nuevoFin = Date.now() + OFERTA_DURACION;
-        localStorage.setItem('finOferta', nuevoFin);
-        setTiempo({ horas: 5, minutos: 30, segundos: 0 });
+        setTiempo({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
         return;
       }
-      const horas = Math.floor(restante / (1000 * 60 * 60));
+      const dias = Math.floor(restante / (1000 * 60 * 60 * 24));
+      const horas = Math.floor((restante % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutos = Math.floor((restante % (1000 * 60 * 60)) / (1000 * 60));
       const segundos = Math.floor((restante % (1000 * 60)) / 1000);
-      setTiempo({ horas, minutos, segundos });
+      setTiempo({ dias, horas, minutos, segundos });
     };
 
     actualizar();
     const timer = setInterval(actualizar, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [ofertas]);
 
   const handleNewsletter = async () => {
     if (!email) return;
@@ -283,36 +284,68 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Contador de oferta */}
-      <section className="py-10 bg-gradient-to-r from-orange-500 to-red-500">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <p className="text-white/80 text-sm font-semibold uppercase tracking-widest mb-1">Oferta especial</p>
-              <h3 className="text-2xl md:text-3xl font-extrabold text-white">Descuentos por tiempo limitado!</h3>
-            </div>
-            <div className="flex items-center gap-3">
-              {[
-                { val: pad(tiempo.horas), label: 'Horas' },
-                { val: pad(tiempo.minutos), label: 'Minutos' },
-                { val: pad(tiempo.segundos), label: 'Segundos' },
-              ].map((item, i) => (
-                <div key={item.label} className="flex items-center gap-3">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-3 text-center border border-white/30 min-w-[70px]">
-                    <p className="text-3xl font-extrabold text-white">{item.val}</p>
-                    <p className="text-white/70 text-xs">{item.label}</p>
-                  </div>
-                  {i < 2 && <span className="text-white text-2xl font-extrabold">:</span>}
+      {/* Ofertas reales - solo se muestra si hay productos en oferta */}
+      {ofertas.length > 0 && (
+        <section className="py-10 bg-gradient-to-r from-orange-500 to-red-500">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+              <div>
+                <p className="text-white/80 text-sm font-semibold uppercase tracking-widest mb-1">Oferta especial</p>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-white">
+                  Hasta {Math.max(...ofertas.map((o) => o.descuento))}% de descuento!
+                </h3>
+              </div>
+              {(tiempo.dias > 0 || tiempo.horas > 0 || tiempo.minutos > 0 || tiempo.segundos > 0) && (
+                <div className="flex items-center gap-3">
+                  {[
+                    { val: tiempo.dias, label: 'Dias', mostrar: tiempo.dias > 0 },
+                    { val: pad(tiempo.horas), label: 'Horas', mostrar: true },
+                    { val: pad(tiempo.minutos), label: 'Minutos', mostrar: true },
+                    { val: pad(tiempo.segundos), label: 'Segundos', mostrar: true },
+                  ].filter((item) => item.mostrar).map((item, i, arr) => (
+                    <div key={item.label} className="flex items-center gap-3">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-3 text-center border border-white/30 min-w-[70px]">
+                        <p className="text-3xl font-extrabold text-white">{item.val}</p>
+                        <p className="text-white/70 text-xs">{item.label}</p>
+                      </div>
+                      {i < arr.length - 1 && <span className="text-white text-2xl font-extrabold">:</span>}
+                    </div>
+                  ))}
                 </div>
+              )}
+              <Link href="/explorar" className="bg-white text-orange-500 px-8 py-3 rounded-2xl font-bold hover:bg-orange-50 transition-colors whitespace-nowrap shadow-xl flex items-center gap-2">
+                Ver ofertas
+                <ArrowForwardIcon style={{ fontSize: 18 }} />
+              </Link>
+            </div>
+
+            {/* Productos en oferta */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {ofertas.slice(0, 4).map((producto) => (
+                <Link href="/login" key={producto.id} className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 block">
+                  <div className="relative h-32 bg-gray-50 overflow-hidden">
+                    {producto.imagen_url ? (
+                      <img src={producto.imagen_url} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                    )}
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{producto.descuento}%
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <h4 className="font-bold text-gray-800 text-xs line-clamp-1 mb-1">{producto.nombre}</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-xs line-through">S/. {producto.precio}</span>
+                      <span className="text-red-600 font-extrabold text-sm">S/. {producto.precio_oferta}</span>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
-            <Link href="/explorar" className="bg-white text-orange-500 px-8 py-3 rounded-2xl font-bold hover:bg-orange-50 transition-colors whitespace-nowrap shadow-xl flex items-center gap-2">
-              Ver ofertas
-              <ArrowForwardIcon style={{ fontSize: 18 }} />
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Categorias preview */}
       <section className="py-20 bg-gray-50">
@@ -376,6 +409,11 @@ export default function HomePage() {
                   <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-blue-600 text-xs font-bold px-2 py-1 rounded-full">
                     {producto.categoria}
                   </div>
+                  {producto.precio_oferta && (
+                    <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{producto.descuento}%
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h3>
@@ -383,7 +421,14 @@ export default function HomePage() {
                     <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={14} />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
+                    {producto.precio_oferta ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm line-through">S/. {producto.precio}</span>
+                        <span className="text-red-600 font-extrabold text-xl">S/. {producto.precio_oferta}</span>
+                      </div>
+                    ) : (
+                      <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
+                    )}
                     <span className="text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-medium">Ver mas</span>
                   </div>
                 </div>
