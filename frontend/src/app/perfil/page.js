@@ -15,13 +15,15 @@ import SaveIcon from '@mui/icons-material/Save';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import BadgeIcon from '@mui/icons-material/Badge';
+import PhoneIcon from '@mui/icons-material/Phone';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 export default function PerfilPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formPerfil, setFormPerfil] = useState({ nombre: '', email: '' });
+  const [formPerfil, setFormPerfil] = useState({ nombre: '', email: '', telefono: '', direccion: '' });
   const [formPassword, setFormPassword] = useState({ password_actual: '', password_nueva: '', password_confirmar: '' });
   const [showPasswords, setShowPasswords] = useState({ actual: false, nueva: false, confirmar: false });
   const [savingPerfil, setSavingPerfil] = useState(false);
@@ -31,7 +33,12 @@ export default function PerfilPage() {
     api.get('/perfil')
       .then((res) => {
         setPerfil(res.data);
-        setFormPerfil({ nombre: res.data.nombre, email: res.data.email });
+        setFormPerfil({
+          nombre: res.data.nombre,
+          email: res.data.email,
+          telefono: res.data.telefono || '',
+          direccion: res.data.direccion || '',
+        });
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -151,6 +158,32 @@ export default function PerfilPage() {
                   value={formPerfil.email}
                   onChange={(e) => setFormPerfil({ ...formPerfil, email: e.target.value })}
                   required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+              <div className="relative">
+                <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style={{ fontSize: 18 }} />
+                <input
+                  type="tel"
+                  placeholder="+51 999 999 999"
+                  className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
+                  value={formPerfil.telefono}
+                  onChange={(e) => setFormPerfil({ ...formPerfil, telefono: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de envío</label>
+              <div className="relative">
+                <LocationOnIcon className="absolute left-3 top-3.5 text-gray-400" style={{ fontSize: 18 }} />
+                <textarea
+                  rows={2}
+                  placeholder="Av. Ejemplo 123, Distrito, Ciudad"
+                  className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 resize-none"
+                  value={formPerfil.direccion}
+                  onChange={(e) => setFormPerfil({ ...formPerfil, direccion: e.target.value })}
                 />
               </div>
             </div>
