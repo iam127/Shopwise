@@ -33,7 +33,7 @@ export default function NavbarPublic() {
 
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
-          <Image src="/logo.png" alt="Shopwise" width={140} height={35} style={{ objectFit: 'contain' }} />
+          <Image src="/logo.png" alt="Shopwise" width={140} height={35} style={{ objectFit: 'contain', width: '140px', height: 'auto' }} />
         </Link>
 
         {/* Links desktop */}

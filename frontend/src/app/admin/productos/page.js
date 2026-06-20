@@ -15,6 +15,8 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 export default function AdminProductosPage() {
   const { user } = useAuth();
@@ -31,6 +33,7 @@ export default function AdminProductosPage() {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [loading, setLoading] = useState(false);
   const [procesando, setProcesando] = useState(null);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
 
   useEffect(() => {
     if (user && user.rol !== 'admin') router.push('/productos');
@@ -40,6 +43,25 @@ export default function AdminProductosPage() {
 
   const fetchProductos = () => {
     api.get('/productos/admin/todos').then((res) => setProductos(res.data));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSubiendoImagen(true);
+    const formData = new FormData();
+    formData.append('imagen', file);
+    try {
+      const res = await api.post('/upload/imagen', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setForm((prev) => ({ ...prev, imagen_url: res.data.url }));
+      toast.success('Imagen subida correctamente');
+    } catch (err) {
+      toast.error('Error al subir la imagen');
+    } finally {
+      setSubiendoImagen(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -393,19 +415,43 @@ export default function AdminProductosPage() {
                 />
               </div>
 
+              {/* Subida de imagen real */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">URL de imagen</label>
-                <input
-                  type="text"
-                  placeholder="https://..."
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50"
-                  value={form.imagen_url}
-                  onChange={(e) => setForm({ ...form, imagen_url: e.target.value })}
-                />
-                {form.imagen_url && (
-                  <div className="mt-2 w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Imagen del producto</label>
+
+                {form.imagen_url ? (
+                  <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200">
                     <img src={form.imagen_url} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, imagen_url: '' })}
+                      className="absolute top-1 right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 transition-colors"
+                    >
+                      <HighlightOffIcon className="text-red-500" style={{ fontSize: 18 }} />
+                    </button>
                   </div>
+                ) : (
+                  <label className={'flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-xl py-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors ' + (subiendoImagen ? 'pointer-events-none opacity-60' : '')}>
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={subiendoImagen}
+                    />
+                    {subiendoImagen ? (
+                      <>
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-sm text-gray-500">Subiendo imagen...</p>
+                      </>
+                    ) : (
+                      <>
+                        <CloudUploadIcon className="text-gray-400" style={{ fontSize: 32 }} />
+                        <p className="text-sm text-gray-500 font-medium">Haz clic para subir una imagen</p>
+                        <p className="text-xs text-gray-400">PNG, JPG o WEBP (max 5MB)</p>
+                      </>
+                    )}
+                  </label>
                 )}
               </div>
 
@@ -423,7 +469,7 @@ export default function AdminProductosPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || subiendoImagen}
                   className="flex-1 bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
                 >
                   {loading ? 'Guardando...' : editId ? 'Actualizar producto' : 'Crear producto'}
