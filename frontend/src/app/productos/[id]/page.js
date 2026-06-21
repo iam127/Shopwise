@@ -15,11 +15,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import StarIcon from '@mui/icons-material/Star';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import RatingStars from '@/components/RatingStars';
 
 export default function ProductoDetallePage({ params }) {
   const { id } = use(params);
@@ -147,12 +147,18 @@ export default function ProductoDetallePage({ params }) {
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-8xl">📦</div>
               )}
+              {producto.precio_oferta && (
+                <div className="absolute top-4 right-4 bg-red-600 text-white text-sm font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <LocalOfferIcon style={{ fontSize: 14 }} />
+                  -{producto.descuento}% OFF
+                </div>
+              )}
               {producto.stock === 0 && (
                 <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                   <span className="text-white font-semibold bg-red-500 px-4 py-2 rounded-full">Sin stock</span>
                 </div>
               )}
-              {producto.stock > 0 && producto.stock <= 5 && (
+              {producto.stock > 0 && producto.stock <= 5 && !producto.precio_oferta && (
                 <div className="absolute top-4 left-4 bg-orange-400 text-white text-xs px-3 py-1 rounded-full font-semibold">
                   ¡Últimas unidades!
                 </div>
@@ -185,14 +191,9 @@ export default function ProductoDetallePage({ params }) {
               </div>
               <h1 className="text-3xl font-extrabold text-gray-800 mb-3">{producto.nombre}</h1>
 
-              {/* Rating simulado */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex">
-                  {[1,2,3,4,5].map((star) => (
-                    <StarIcon key={star} className="text-yellow-400" style={{ fontSize: 18 }} />
-                  ))}
-                </div>
-                <span className="text-sm text-gray-400">(128 reseñas)</span>
+              {/* Rating real */}
+              <div className="mb-4">
+                <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={18} />
               </div>
 
               <p className="text-gray-500 leading-relaxed">{producto.descripcion}</p>
@@ -201,9 +202,23 @@ export default function ProductoDetallePage({ params }) {
             {/* Precio y stock */}
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-end gap-3 mb-4">
-                <span className="text-4xl font-extrabold text-blue-600">
-                  S/. {parseFloat(producto.precio).toFixed(2)}
-                </span>
+                {producto.precio_oferta ? (
+                  <>
+                    <span className="text-4xl font-extrabold text-red-600">
+                      S/. {parseFloat(producto.precio_oferta).toFixed(2)}
+                    </span>
+                    <span className="text-xl text-gray-400 line-through mb-1">
+                      S/. {parseFloat(producto.precio).toFixed(2)}
+                    </span>
+                    <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-full mb-1.5">
+                      Ahorras S/. {(producto.precio - producto.precio_oferta).toFixed(2)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-4xl font-extrabold text-blue-600">
+                    S/. {parseFloat(producto.precio).toFixed(2)}
+                  </span>
+                )}
               </div>
 
               <div className={`flex items-center gap-2 mb-6 px-3 py-2 rounded-xl w-fit ${

@@ -23,6 +23,15 @@ export default function PedidosPage() {
     }
   }, [user]);
 
+  // El backend devuelve los pedidos ordenados del mas reciente al mas antiguo.
+  // Calculamos el numero de pedido del usuario (1, 2, 3...) segun el orden de creacion real,
+  // sin importar el id global interno usado por el admin.
+  const totalPedidos = pedidos.length;
+  const pedidosConNumero = pedidos.map((pedido, index) => ({
+    ...pedido,
+    numeroPedido: totalPedidos - index,
+  }));
+
   const estadoConfig = (estado) => {
     switch (estado) {
       case 'pagado': return { color: 'text-green-600', bg: 'bg-green-50 border-green-200', icon: <CheckCircleIcon className="text-green-500" style={{ fontSize: 18 }} />, label: 'Pagado' };
@@ -84,7 +93,7 @@ export default function PedidosPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {pedidos.map((pedido) => {
+            {pedidosConNumero.map((pedido) => {
               const config = estadoConfig(pedido.estado);
               return (
                 <div
@@ -95,7 +104,7 @@ export default function PedidosPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <ReceiptLongIcon className="text-blue-400" style={{ fontSize: 20 }} />
-                        <p className="font-bold text-gray-800 text-lg">Pedido #{pedido.id}</p>
+                        <p className="font-bold text-gray-800 text-lg">Pedido #{pedido.numeroPedido}</p>
                       </div>
                       <p className="text-gray-400 text-sm">
                         {new Date(pedido.creado_en).toLocaleDateString('es-PE', {

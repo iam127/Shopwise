@@ -220,11 +220,23 @@ export default function ExplorarPage() {
                     <WhatshotIcon style={{ fontSize: 12 }} />
                     #{i + 1} Trending
                   </div>
+                  {producto.precio_oferta && (
+                    <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{producto.descuento}%
+                    </div>
+                  )}
                 </div>
                 <div className="p-3">
                   <h3 className="font-bold text-gray-800 text-sm line-clamp-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h3>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-blue-600 font-extrabold">S/. {producto.precio}</span>
+                    {producto.precio_oferta ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-gray-400 text-xs line-through">S/. {producto.precio}</span>
+                        <span className="text-red-600 font-extrabold">S/. {producto.precio_oferta}</span>
+                      </div>
+                    ) : (
+                      <span className="text-blue-600 font-extrabold">S/. {producto.precio}</span>
+                    )}
                     <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={10} showCount={false} />
                   </div>
                 </div>
@@ -368,12 +380,17 @@ export default function ExplorarPage() {
                   <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-blue-600 text-xs font-bold px-2 py-1 rounded-full">
                     {producto.categoria}
                   </div>
+                  {producto.precio_oferta && (
+                    <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{producto.descuento}%
+                    </div>
+                  )}
                   {producto.stock === 0 && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">Sin stock</span>
                     </div>
                   )}
-                  {producto.stock > 0 && producto.stock <= 5 && (
+                  {producto.stock > 0 && producto.stock <= 5 && !producto.precio_oferta && (
                     <div className="absolute top-3 right-3 bg-orange-400 text-white text-xs px-2 py-1 rounded-full font-semibold">Ultimas!</div>
                   )}
                   {/* Vista rapida overlay */}
@@ -393,7 +410,14 @@ export default function ExplorarPage() {
                     <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={12} />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-blue-600 font-extrabold text-lg">S/. {producto.precio}</span>
+                    {producto.precio_oferta ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm line-through">S/. {producto.precio}</span>
+                        <span className="text-red-600 font-extrabold text-lg">S/. {producto.precio_oferta}</span>
+                      </div>
+                    ) : (
+                      <span className="text-blue-600 font-extrabold text-lg">S/. {producto.precio}</span>
+                    )}
                     <span className="text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-medium group-hover:bg-blue-700 transition-colors">Ver mas</span>
                   </div>
                 </div>
@@ -410,6 +434,11 @@ export default function ExplorarPage() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-4xl">paquete</div>
                   )}
+                  {producto.precio_oferta && (
+                    <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{producto.descuento}%
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-blue-500 font-semibold uppercase tracking-wide mb-1">{producto.categoria}</p>
@@ -419,7 +448,14 @@ export default function ExplorarPage() {
                     <RatingStars rating={producto.rating_promedio} total={producto.rating_total} size={12} />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
+                    {producto.precio_oferta ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm line-through">S/. {producto.precio}</span>
+                        <span className="text-red-600 font-extrabold text-xl">S/. {producto.precio_oferta}</span>
+                      </div>
+                    ) : (
+                      <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
+                    )}
                     <span className="text-xs bg-blue-600 text-white px-4 py-2 rounded-full font-medium group-hover:bg-blue-700 transition-colors">Ver mas</span>
                   </div>
                 </div>

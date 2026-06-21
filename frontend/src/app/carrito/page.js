@@ -13,6 +13,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import toast from 'react-hot-toast';
 
 export default function CarritoPage() {
@@ -41,6 +42,8 @@ export default function CarritoPage() {
     }
     setLoading(false);
     };
+
+  const tieneOferta = (item) => item.descuento > 0 && Number(item.precio_final) < Number(item.precio);
 
   if (!user) {
     return (
@@ -138,11 +141,28 @@ export default function CarritoPage() {
                     <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center text-3xl">📦</div>
                   )}
                   <div className="flex-1">
-                    <p className="font-bold text-gray-800">{item.nombre}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-gray-800">{item.nombre}</p>
+                      {tieneOferta(item) && (
+                        <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <LocalOfferIcon style={{ fontSize: 11 }} />
+                          -{item.descuento}%
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-400 text-sm">Cantidad: {item.cantidad}</p>
-                    <p className="text-blue-600 font-extrabold text-lg mt-1">
-                      S/. {(item.precio * item.cantidad).toFixed(2)}
-                    </p>
+                    {tieneOferta(item) ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-gray-400 text-sm line-through">S/. {(item.precio * item.cantidad).toFixed(2)}</p>
+                        <p className="text-red-600 font-extrabold text-lg">
+                          S/. {(item.precio_final * item.cantidad).toFixed(2)}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-blue-600 font-extrabold text-lg mt-1">
+                        S/. {(item.precio_final * item.cantidad).toFixed(2)}
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => removeFromCart(item.id)}
@@ -162,7 +182,7 @@ export default function CarritoPage() {
                   {carrito.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm text-gray-500">
                       <span className="line-clamp-1 flex-1">{item.nombre} x{item.cantidad}</span>
-                      <span className="ml-2 font-medium">S/. {(item.precio * item.cantidad).toFixed(2)}</span>
+                      <span className="ml-2 font-medium">S/. {(item.precio_final * item.cantidad).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

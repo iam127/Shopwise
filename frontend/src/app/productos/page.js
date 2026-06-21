@@ -13,6 +13,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 export default function ProductosPage() {
   const { addToCart, carrito } = useCart();
@@ -214,12 +215,18 @@ export default function ProductosPage() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-5xl">📦</div>
                   )}
+                  {producto.precio_oferta && (
+                    <span className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                      <LocalOfferIcon style={{ fontSize: 11 }} />
+                      -{producto.descuento}%
+                    </span>
+                  )}
                   {producto.stock === 0 && (
                     <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                       <span className="text-white font-semibold text-sm bg-red-500 px-3 py-1 rounded-full">Sin stock</span>
                     </div>
                   )}
-                  {producto.stock > 0 && producto.stock <= 5 && (
+                  {producto.stock > 0 && producto.stock <= 5 && !producto.precio_oferta && (
                     <span className="absolute top-2 right-2 bg-orange-400 text-white text-xs px-2 py-1 rounded-full font-medium">
                       ¡Últimas unidades!
                     </span>
@@ -230,7 +237,14 @@ export default function ProductosPage() {
                   <h2 className="font-bold text-gray-800 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{producto.nombre}</h2>
                   <p className="text-gray-400 text-sm mb-3 line-clamp-2">{producto.descripcion}</p>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
+                    {producto.precio_oferta ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm line-through">S/. {producto.precio}</span>
+                        <span className="text-red-600 font-extrabold text-xl">S/. {producto.precio_oferta}</span>
+                      </div>
+                    ) : (
+                      <span className="text-blue-600 font-extrabold text-xl">S/. {producto.precio}</span>
+                    )}
                     <span className="text-gray-300 text-xs">Stock: {producto.stock}</span>
                   </div>
                   <button
