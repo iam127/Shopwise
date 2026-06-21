@@ -14,7 +14,11 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import toast from 'react-hot-toast';
+
+const COSTO_ENVIO = 15;
+const ENVIO_GRATIS_DESDE = 100;
 
 export default function CarritoPage() {
   const { carrito, removeFromCart, clearCart, total, fetchCarrito } = useCart();
@@ -44,6 +48,11 @@ export default function CarritoPage() {
     };
 
   const tieneOferta = (item) => item.descuento > 0 && Number(item.precio_final) < Number(item.precio);
+
+  const subtotal = total;
+  const costoEnvio = subtotal >= ENVIO_GRATIS_DESDE ? 0 : COSTO_ENVIO;
+  const totalConEnvio = subtotal + costoEnvio;
+  const faltaParaGratis = ENVIO_GRATIS_DESDE - subtotal;
 
   if (!user) {
     return (
@@ -129,6 +138,30 @@ export default function CarritoPage() {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Lista de items */}
             <div className="flex-1 space-y-4">
+              {/* Barra de progreso envio gratis */}
+              {costoEnvio > 0 && (
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <LocalShippingIcon className="text-blue-500" style={{ fontSize: 18 }} />
+                    <p className="text-sm text-blue-700 font-semibold">
+                      Te faltan S/. {faltaParaGratis.toFixed(2)} para envío gratis
+                    </p>
+                  </div>
+                  <div className="w-full bg-blue-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all"
+                      style={{ width: Math.min(100, (subtotal / ENVIO_GRATIS_DESDE) * 100) + '%' }}
+                    />
+                  </div>
+                </div>
+              )}
+              {costoEnvio === 0 && (
+                <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-2">
+                  <LocalShippingIcon className="text-green-500" style={{ fontSize: 18 }} />
+                  <p className="text-sm text-green-700 font-semibold">¡Tu pedido tiene envío gratis!</p>
+                </div>
+              )}
+
               {carrito.map((item) => (
                 <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex gap-4 items-center">
                   {item.imagen_url ? (
@@ -186,10 +219,25 @@ export default function CarritoPage() {
                     </div>
                   ))}
                 </div>
+                <div className="border-t pt-4 space-y-2 mb-4">
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Subtotal</span>
+                    <span className="font-medium">S/. {subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <LocalShippingIcon style={{ fontSize: 15 }} />
+                      Envío
+                    </span>
+                    <span className={'font-medium ' + (costoEnvio === 0 ? 'text-green-600' : '')}>
+                      {costoEnvio === 0 ? 'Gratis' : 'S/. ' + costoEnvio.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
                 <div className="border-t pt-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-gray-800 text-lg">Total</span>
-                    <span className="font-extrabold text-blue-600 text-2xl">S/. {total.toFixed(2)}</span>
+                    <span className="font-extrabold text-blue-600 text-2xl">S/. {totalConEnvio.toFixed(2)}</span>
                   </div>
                 </div>
                 <button
