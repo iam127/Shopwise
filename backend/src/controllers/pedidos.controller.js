@@ -54,7 +54,11 @@ const getPedidoById = async (req, res) => {
   try {
     const pedido = await pool.query(`
       SELECT p.*, u.nombre AS cliente_nombre, u.email AS cliente_email,
-        u.telefono AS cliente_telefono, u.direccion AS cliente_direccion
+        u.telefono AS cliente_telefono, u.direccion AS cliente_direccion,
+        (
+          SELECT COUNT(*) FROM pedidos p2
+          WHERE p2.usuario_id = p.usuario_id AND p2.creado_en <= p.creado_en
+        ) AS numero_pedido_cliente
       FROM pedidos p
       JOIN usuarios u ON p.usuario_id = u.id
       WHERE p.id = $1
@@ -74,7 +78,9 @@ const getPedidoById = async (req, res) => {
 const getAllPedidos = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.*, u.nombre AS cliente FROM pedidos p
+      SELECT p.*, u.nombre AS cliente,
+        ROW_NUMBER() OVER (PARTITION BY p.usuario_id ORDER BY p.creado_en ASC) AS numero_pedido_cliente
+      FROM pedidos p
       JOIN usuarios u ON p.usuario_id = u.id
       ORDER BY p.creado_en DESC
     `);
