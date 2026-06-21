@@ -1,5 +1,8 @@
 const pool = require('../db/db');
 
+const COSTO_ENVIO = 15;
+const ENVIO_GRATIS_DESDE = 100;
+
 const createPedido = async (req, res) => {
   const usuario_id = req.user.id;
   try {
@@ -17,10 +20,14 @@ const createPedido = async (req, res) => {
       WHERE ic.carrito_id = $1
     `, [carrito_id]);
     if (items.rows.length === 0) return res.status(400).json({ message: 'El carrito está vacío' });
-    const total = items.rows.reduce((sum, item) => sum + item.precio_final * item.cantidad, 0);
+
+    const subtotal = items.rows.reduce((sum, item) => sum + item.precio_final * item.cantidad, 0);
+    const costo_envio = subtotal >= ENVIO_GRATIS_DESDE ? 0 : COSTO_ENVIO;
+    const total = subtotal + costo_envio;
+
     const pedido = await pool.query(
-      'INSERT INTO pedidos (usuario_id, total, estado) VALUES ($1, $2, $3) RETURNING *',
-      [usuario_id, total, 'pendiente']
+      'INSERT INTO pedidos (usuario_id, subtotal, costo_envio, total, estado) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [usuario_id, subtotal, costo_envio, total, 'pendiente']
     );
     const pedido_id = pedido.rows[0].id;
     for (const item of items.rows) {
