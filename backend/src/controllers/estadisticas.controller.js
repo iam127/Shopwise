@@ -18,14 +18,14 @@ const getEstadisticas = async (req, res) => {
       "SELECT COUNT(*) AS total FROM productos"
     );
 
-    const ventasPorMes = await pool.query(`
+    const ventasPorDia = await pool.query(`
       SELECT 
-        TO_CHAR(creado_en, 'YYYY-MM') AS mes,
+        TO_CHAR(creado_en, 'YYYY-MM-DD') AS dia,
         SUM(total) AS total
       FROM pedidos
-      WHERE estado = 'pagado'
-      GROUP BY mes
-      ORDER BY mes ASC
+      WHERE estado = 'pagado' AND creado_en >= NOW() - INTERVAL '30 days'
+      GROUP BY dia
+      ORDER BY dia ASC
     `);
 
     const productosMasVendidos = await pool.query(`
@@ -46,7 +46,7 @@ const getEstadisticas = async (req, res) => {
       totalPedidos: totalPedidos.rows[0].total,
       totalUsuarios: totalUsuarios.rows[0].total,
       totalProductos: totalProductos.rows[0].total,
-      ventasPorMes: ventasPorMes.rows,
+      ventasPorDia: ventasPorDia.rows,
       productosMasVendidos: productosMasVendidos.rows,
     });
   } catch (err) {
