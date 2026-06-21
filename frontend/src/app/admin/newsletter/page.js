@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/AdminSidebar';
 import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx-js-style';
 import EmailIcon from '@mui/icons-material/Email';
 import SearchIcon from '@mui/icons-material/Search';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -43,17 +44,112 @@ export default function AdminNewsletterPage() {
     toast.success('Todos los emails copiados (' + suscriptoresFiltrados.length + ')');
   };
 
-  const exportarCSV = () => {
-    const csv = 'Email,Fecha de suscripcion\n' +
-      suscriptores.map((s) => s.email + ',' + new Date(s.fecha_suscripcion).toLocaleDateString('es-PE')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'suscriptores_shopwise.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast.success('Archivo CSV descargado');
+  const exportarExcel = () => {
+    const headerStyle = {
+      fill: { fgColor: { rgb: '2563EB' } },
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: {
+        top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+        bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+        left: { style: 'thin', color: { rgb: 'D1D5DB' } },
+        right: { style: 'thin', color: { rgb: 'D1D5DB' } },
+      },
+    };
+
+    const cellStyleBase = {
+      border: {
+        top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        right: { style: 'thin', color: { rgb: 'E5E7EB' } },
+      },
+      alignment: { vertical: 'center' },
+    };
+
+    const cellStyleEven = { ...cellStyleBase, fill: { fgColor: { rgb: 'F9FAFB' } } };
+    const cellStyleOdd = { ...cellStyleBase, fill: { fgColor: { rgb: 'FFFFFF' } } };
+
+    const estadoActivoStyle = { font: { color: { rgb: '16A34A' }, bold: true } };
+    const estadoInactivoStyle = { font: { color: { rgb: '6B7280' }, bold: true } };
+
+    const titulo = 'Suscriptores Newsletter - Shopwise';
+    const subtitulo = 'Exportado el ' + new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) + ' · Total: ' + suscriptores.length + ' suscriptores';
+
+    const headers = ['#', 'Email', 'Fecha de suscripcion', 'Estado'];
+
+    const wsData = [
+      [titulo, '', '', ''],
+      [subtitulo, '', '', ''],
+      [],
+      headers,
+      ...suscriptores.map((s, i) => [
+        i + 1,
+        s.email,
+        new Date(s.fecha_suscripcion).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }),
+        s.activo ? 'Activo' : 'Inactivo',
+      ]),
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+
+    worksheet['!cols'] = [
+      { wch: 6 },
+      { wch: 38 },
+      { wch: 22 },
+      { wch: 14 },
+    ];
+
+    worksheet['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+    ];
+
+    worksheet['A1'].s = {
+      font: { bold: true, sz: 16, color: { rgb: '1E3A8A' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+    };
+    worksheet['A2'].s = {
+      font: { italic: true, sz: 10, color: { rgb: '6B7280' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+    };
+
+    const headerRowIndex = 3;
+    ['A', 'B', 'C', 'D'].forEach((col) => {
+      const cellRef = col + (headerRowIndex + 1);
+      if (worksheet[cellRef]) worksheet[cellRef].s = headerStyle;
+    });
+
+    suscriptores.forEach((s, i) => {
+      const rowIndex = headerRowIndex + 1 + i + 1;
+      const baseStyle = i % 2 === 0 ? cellStyleEven : cellStyleOdd;
+
+      const refA = 'A' + rowIndex;
+      const refB = 'B' + rowIndex;
+      const refC = 'C' + rowIndex;
+      const refD = 'D' + rowIndex;
+
+      if (worksheet[refA]) worksheet[refA].s = { ...baseStyle, alignment: { ...baseStyle.alignment, horizontal: 'center' } };
+      if (worksheet[refB]) worksheet[refB].s = baseStyle;
+      if (worksheet[refC]) worksheet[refC].s = baseStyle;
+      if (worksheet[refD]) {
+        const estadoStyle = s.activo ? estadoActivoStyle : estadoInactivoStyle;
+        worksheet[refD].s = { ...baseStyle, ...estadoStyle, alignment: { ...baseStyle.alignment, horizontal: 'center' } };
+      }
+    });
+
+    worksheet['!rows'] = [
+      { hpt: 28 },
+      { hpt: 18 },
+      { hpt: 6 },
+      { hpt: 24 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Suscriptores');
+
+    XLSX.writeFile(workbook, 'suscriptores_shopwise.xlsx');
+    toast.success('Archivo Excel descargado');
   };
 
   const suscriptoresFiltrados = suscriptores.filter((s) =>
@@ -83,11 +179,11 @@ export default function AdminNewsletterPage() {
               <p className="text-gray-400 text-sm mt-1">Gestiona la lista de correos suscritos</p>
             </div>
             <button
-              onClick={exportarCSV}
+              onClick={exportarExcel}
               className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
             >
               <DownloadIcon style={{ fontSize: 20 }} />
-              Exportar CSV
+              Exportar Excel
             </button>
           </div>
         </div>
