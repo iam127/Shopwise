@@ -198,7 +198,10 @@ export default function AdminPedidosPage() {
                     const estado = estadoConfig[p.estado] || estadoConfig.pendiente;
                     return (
                       <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="p-4 font-bold text-gray-800">#{p.id}</td>
+                        <td className="p-4">
+                          <p className="font-bold text-gray-800">#{p.id}</p>
+                          <p className="text-gray-400 text-xs">Pedido N° {p.numero_pedido_cliente} de {p.cliente.split(' ')[0]}</p>
+                        </td>
                         <td className="p-4 text-gray-600">{p.cliente}</td>
                         <td className="p-4 text-gray-500">{formatFecha(p.creado_en)}</td>
                         <td className="p-4 font-bold text-gray-800">S/. {parseFloat(p.total).toFixed(2)}</td>
@@ -233,6 +236,11 @@ export default function AdminPedidosPage() {
             <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <div>
                 <h3 className="text-xl font-extrabold text-gray-800">Pedido #{pedidoSeleccionado.pedido.id}</h3>
+                {pedidoSeleccionado.pedido.numero_pedido_cliente && (
+                  <p className="text-blue-500 text-xs font-semibold">
+                    Pedido N° {pedidoSeleccionado.pedido.numero_pedido_cliente} de {pedidoSeleccionado.pedido.cliente_nombre?.split(' ')[0]}
+                  </p>
+                )}
                 <p className="text-gray-400 text-xs">{formatFecha(pedidoSeleccionado.pedido.creado_en)}</p>
               </div>
               <button onClick={() => setPedidoSeleccionado(null)} className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
