@@ -29,9 +29,11 @@ export default function ContactoPage() {
   const [loading, setLoading] = useState(false);
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [testimonios, setTestimonios] = useState([]);
+  const [statsPublicas, setStatsPublicas] = useState({ consultasResueltas: 0, satisfaccion: 0 });
 
   useEffect(() => {
     api.get('/testimonios').then((res) => setTestimonios(res.data)).catch(() => {});
+    api.get('/stats-publicas').then((res) => setStatsPublicas(res.data)).catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
@@ -95,7 +97,7 @@ export default function ContactoPage() {
             {[
               { num: '<1h', label: 'Tiempo de respuesta' },
               { num: '24/7', label: 'Disponibilidad' },
-              { num: '98%', label: 'Satisfaccion' },
+              { num: statsPublicas.satisfaccion > 0 ? statsPublicas.satisfaccion + '%' : 'N/A', label: 'Satisfaccion' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-2xl font-extrabold text-white">{stat.num}</p>
@@ -192,14 +194,14 @@ export default function ContactoPage() {
               </div>
             </div>
 
-            {/* Stats de soporte */}
+            {/* Stats de soporte reales */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
               <h3 className="font-extrabold text-gray-800 mb-4 text-sm uppercase tracking-wide">Nuestros numeros</h3>
               <div className="space-y-4">
                 {[
-                  { num: '500+', label: 'Consultas resueltas', color: 'bg-blue-50 text-blue-600', icon: '💬' },
+                  { num: statsPublicas.consultasResueltas + '+', label: 'Consultas resueltas', color: 'bg-blue-50 text-blue-600', icon: '💬' },
                   { num: '<1h', label: 'Tiempo de respuesta', color: 'bg-green-50 text-green-600', icon: '⚡' },
-                  { num: '98%', label: 'Clientes satisfechos', color: 'bg-purple-50 text-purple-600', icon: '⭐' },
+                  { num: statsPublicas.satisfaccion > 0 ? statsPublicas.satisfaccion + '%' : 'N/A', label: 'Clientes satisfechos', color: 'bg-purple-50 text-purple-600', icon: '⭐' },
                   { num: '24/7', label: 'Disponibilidad', color: 'bg-orange-50 text-orange-600', icon: '🕐' },
                 ].map((stat) => (
                   <div key={stat.label} className="flex items-center gap-3">
