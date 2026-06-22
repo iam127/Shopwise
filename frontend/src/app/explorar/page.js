@@ -25,6 +25,7 @@ export default function ExplorarPage() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [testimonios, setTestimonios] = useState([]);
+  const [statsPublicas, setStatsPublicas] = useState({ totalProductos: 0, totalClientes: 0, ratingPromedio: 0, totalRatings: 0 });
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [showSugerencias, setShowSugerencias] = useState(false);
@@ -46,10 +47,12 @@ export default function ExplorarPage() {
       api.get('/productos'),
       api.get('/categorias'),
       api.get('/testimonios'),
-    ]).then(([prodRes, catRes, testRes]) => {
+      api.get('/stats-publicas'),
+    ]).then(([prodRes, catRes, testRes, statsRes]) => {
       setProductos(prodRes.data);
       setCategorias(catRes.data);
       setTestimonios(testRes.data);
+      setStatsPublicas(statsRes.data);
       const maxP = Math.max(...prodRes.data.map((p) => parseFloat(p.precio)));
       setPrecioMax(maxP);
       setLoading(false);
@@ -152,12 +155,12 @@ export default function ExplorarPage() {
             )}
           </div>
 
-          {/* Stats */}
+          {/* Stats reales */}
           <div className="flex items-center gap-8 justify-center mt-8">
             {[
               { num: productos.length + '+', label: 'Productos' },
               { num: categorias.length + '', label: 'Categorias' },
-              { num: '4.9', label: 'Valoracion' },
+              { num: statsPublicas.totalRatings > 0 ? String(statsPublicas.ratingPromedio) : 'N/A', label: 'Valoracion' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-2xl font-extrabold text-white">{stat.num}</p>
@@ -214,7 +217,7 @@ export default function ExplorarPage() {
                   {producto.imagen_url ? (
                     <img src={producto.imagen_url} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-50">paquete</div>
+                    <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-50">📦</div>
                   )}
                   <div className="absolute top-2 left-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
                     <WhatshotIcon style={{ fontSize: 12 }} />
@@ -247,12 +250,10 @@ export default function ExplorarPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-6 py-10 flex-1 w-full">
-
         {/* Filtros */}
         <div className="bg-gray-50 rounded-2xl p-5 mb-8 border border-gray-100">
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Categorías */}
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setCategoriaFiltro('')}
@@ -270,8 +271,6 @@ export default function ExplorarPage() {
                   </button>
                 ))}
               </div>
-
-              {/* Precio */}
               <div className="flex items-center gap-2">
                 <LocalOfferIcon className="text-gray-400" style={{ fontSize: 16 }} />
                 <input
@@ -290,8 +289,6 @@ export default function ExplorarPage() {
                   onChange={(e) => setPrecioMax(Number(e.target.value))}
                 />
               </div>
-
-              {/* Orden */}
               <div className="flex items-center gap-2">
                 <FilterListIcon className="text-gray-400" style={{ fontSize: 16 }} />
                 <select
@@ -306,8 +303,6 @@ export default function ExplorarPage() {
                 </select>
               </div>
             </div>
-
-            {/* Vista */}
             <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
               <button
                 onClick={() => setVista('grid')}
@@ -375,7 +370,7 @@ export default function ExplorarPage() {
                   {producto.imagen_url ? (
                     <img src={producto.imagen_url} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-5xl">paquete</div>
+                    <div className="w-full h-full flex items-center justify-center text-5xl">📦</div>
                   )}
                   <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-blue-600 text-xs font-bold px-2 py-1 rounded-full">
                     {producto.categoria}
@@ -393,7 +388,6 @@ export default function ExplorarPage() {
                   {producto.stock > 0 && producto.stock <= 5 && !producto.precio_oferta && (
                     <div className="absolute top-3 right-3 bg-orange-400 text-white text-xs px-2 py-1 rounded-full font-semibold">Ultimas!</div>
                   )}
-                  {/* Vista rapida overlay */}
                   {productoHover === producto.id && (
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                       <div className="bg-white text-blue-600 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg">
@@ -432,7 +426,7 @@ export default function ExplorarPage() {
                   {producto.imagen_url ? (
                     <img src={producto.imagen_url} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl">paquete</div>
+                    <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
                   )}
                   {producto.precio_oferta && (
                     <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
