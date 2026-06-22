@@ -58,6 +58,17 @@ export default function EstadisticasPage() {
     { label: 'Productos', value: stats.totalProductos, icon: <Inventory2Icon style={{ fontSize: 26 }} />, color: 'bg-orange-50 text-orange-600' },
   ];
 
+  // Formatea 'YYYY-MM-DD' a algo como '20 Jun'
+  const formatDia = (diaStr) => {
+    const fecha = new Date(diaStr + 'T00:00:00');
+    return fecha.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+  };
+
+  const ventasPorDiaFormateadas = (stats.ventasPorDia || []).map((v) => ({
+    ...v,
+    diaFormateado: formatDia(v.dia),
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <AdminSidebar />
@@ -121,32 +132,38 @@ export default function EstadisticasPage() {
             </div>
           </div>
 
-          {/* Ventas por mes */}
+          {/* Ventas por dia */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-extrabold text-gray-800">Ventas por mes</h3>
-                <p className="text-gray-400 text-sm">Evolucion de ingresos mensuales</p>
+                <h3 className="font-extrabold text-gray-800">Ventas por dia</h3>
+                <p className="text-gray-400 text-sm">Evolucion de ingresos en los ultimos 30 dias</p>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={stats.ventasPorMes}>
-                <defs>
-                  <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="mes" stroke="#94a3b8" fontSize={12} />
-                <YAxis stroke="#94a3b8" fontSize={12} />
-                <Tooltip
-                  formatter={(value) => ['S/. ' + parseFloat(value).toFixed(2), 'Ventas']}
-                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }}
-                />
-                <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} fill="url(#colorVentas)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {ventasPorDiaFormateadas.length === 0 ? (
+              <div className="h-72 flex items-center justify-center text-gray-300">
+                <p>Aun no hay ventas registradas en los ultimos 30 dias</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={ventasPorDiaFormateadas}>
+                  <defs>
+                    <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="diaFormateado" stroke="#94a3b8" fontSize={12} />
+                  <YAxis stroke="#94a3b8" fontSize={12} />
+                  <Tooltip
+                    formatter={(value) => ['S/. ' + parseFloat(value).toFixed(2), 'Ventas']}
+                    contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }}
+                  />
+                  <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} fill="url(#colorVentas)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* Productos mas vendidos */}
