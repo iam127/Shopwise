@@ -31,11 +31,8 @@ export default function AdminSidebar() {
   ];
 
   const handleLogout = () => {
-    if (logout) {
-      logout();
-    } else {
-      router.push('/login');
-    }
+    logout();
+    router.push('/login');
   };
 
   return (

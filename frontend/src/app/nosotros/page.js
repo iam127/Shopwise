@@ -29,10 +29,11 @@ export default function NosotrosPage() {
   }, []);
 
   const equipo = [
-    { nombre: 'Matias Galvan', cargo: 'CEO & Founder', avatar: 'M', color: 'bg-blue-600', descripcion: 'Apasionado por la tecnologia y el comercio electronico. Lider del equipo Shopwise.' },
-    { nombre: 'Ana Torres', cargo: 'CTO', avatar: 'A', color: 'bg-purple-600', descripcion: 'Experta en desarrollo de software y arquitectura de sistemas escalables.' },
-    { nombre: 'Carlos Ruiz', cargo: 'Head of Design', avatar: 'C', color: 'bg-green-600', descripcion: 'Disenador UX/UI con experiencia en crear experiencias digitales memorables.' },
-    { nombre: 'Sofia Martinez', cargo: 'Marketing Lead', avatar: 'S', color: 'bg-orange-500', descripcion: 'Especialista en marketing digital y estrategias de crecimiento organico.' },
+    { nombre: 'Matias Galvan Guerrero', cargo: 'Desarrollador Full Stack & Lider', avatar: 'M', color: 'bg-blue-600', descripcion: 'Arquitecto principal de Shopwise. Desarrollo el backend con Express y PostgreSQL, el frontend con Next.js, el panel admin completo, sistema de ofertas, newsletter, pagos, cloudinary, despliegue en Render y Vercel, y toda la logica de negocio.' },
+    { nombre: 'Naudy Domi Noa Laura', cargo: 'Colaborador', avatar: 'N', color: 'bg-purple-600', descripcion: 'Miembro del equipo de desarrollo de Shopwise.' },
+    { nombre: 'Geraldine Solis Chayna', cargo: 'Colaboradora', avatar: 'G', color: 'bg-pink-500', descripcion: 'Miembro del equipo de desarrollo de Shopwise.' },
+    { nombre: 'Carlos Alberto Valeriano Colan', cargo: 'Colaborador', avatar: 'C', color: 'bg-green-600', descripcion: 'Miembro del equipo de desarrollo de Shopwise.' },
+    { nombre: 'Kevin Piero Barbaran Contreras', cargo: 'Colaborador', avatar: 'K', color: 'bg-orange-500', descripcion: 'Miembro del equipo de desarrollo de Shopwise.' },
   ];
 
   const timeline = [
@@ -215,7 +216,9 @@ export default function NosotrosPage() {
             <h2 className="text-4xl font-extrabold text-gray-900 mt-2">Nuestro equipo</h2>
             <p className="text-gray-400 mt-3 max-w-xl mx-auto">Un equipo apasionado por crear la mejor experiencia de compra para ti</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+
             {equipo.map((miembro) => (
               <div key={miembro.nombre} className="bg-white rounded-3xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
                 <div className={'w-20 h-20 ' + miembro.color + ' rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg'}>

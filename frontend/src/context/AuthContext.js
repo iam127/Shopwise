@@ -1,6 +1,5 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
@@ -10,7 +9,6 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const token = Cookies.get('token');
@@ -41,7 +39,6 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove('user');
     setUser(null);
     toast.success('Sesión cerrada');
-    router.push('/login');
   };
 
   return (
