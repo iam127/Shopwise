@@ -20,7 +20,12 @@ export default function LoginPage() {
         router.push('/productos');
       }
     } catch (err) {
-      setError('Email o contraseña incorrectos');
+      const mensaje = err.response?.data?.message;
+      if (mensaje) {
+        setError(mensaje);
+      } else {
+        setError('Email o contraseña incorrectos');
+      }
     }
   };
 
