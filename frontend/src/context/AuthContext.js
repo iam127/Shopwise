@@ -28,8 +28,8 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const register = async (nombre, email, password) => {
-    const res = await api.post('/auth/register', { nombre, email, password });
+  const register = async (nombre, email, password, telefono, direccion) => {
+    const res = await api.post('/auth/register', { nombre, email, password, telefono, direccion });
     toast.success('Cuenta creada exitosamente');
     return res.data;
   };

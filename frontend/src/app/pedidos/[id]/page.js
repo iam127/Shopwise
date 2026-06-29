@@ -41,25 +41,32 @@ export default function SeguimientoPedidoPage({ params }) {
     }).catch(() => {});
   }, [user, id]);
 
-    const cargarLogoBase64 = () => {
+  const cargarLogoBase64 = () => {
     return new Promise((resolve) => {
-        const img = new window.Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
-        // Fondo blanco para que el logo no se mezcle con el azul
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
+        // Convertir todos los pixeles a blanco manteniendo transparencia
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          if (imageData.data[i + 3] > 0) {
+            imageData.data[i] = 255;
+            imageData.data[i + 1] = 255;
+            imageData.data[i + 2] = 255;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
         resolve(canvas.toDataURL('image/png'));
-        };
-        img.onerror = () => resolve(null);
-        img.src = '/logo.png';
+      };
+      img.onerror = () => resolve(null);
+      img.src = '/logo.png';
     });
-    };
+  };
 
   const descargarPDF = async () => {
     setGenerandoPdf(true);
@@ -68,7 +75,6 @@ export default function SeguimientoPedidoPage({ params }) {
       const { default: autoTable } = await import('jspdf-autotable');
 
       const doc = new jsPDF();
-
       const logoBase64 = await cargarLogoBase64();
 
       const fechaEmision = new Date().toLocaleDateString('es-PE', {
@@ -82,19 +88,16 @@ export default function SeguimientoPedidoPage({ params }) {
       doc.setFillColor(37, 99, 235);
       doc.rect(0, 0, 210, 40, 'F');
 
-      // Logo en el encabezado
+      // Logo blanco directo sobre fondo azul
       if (logoBase64) {
-        // Fondo blanco redondeado para el logo
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(12, 6, 36, 16, 3, 3, 'F');
-        doc.addImage(logoBase64, 'PNG', 13, 7, 34, 14);
+        doc.addImage(logoBase64, 'PNG', 10, 3, 48, 38);
       }
 
-      // Texto del encabezado
+      // Texto encabezado
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text('Tu tienda de confianza', 14, 30);
+      doc.text('Tu tienda de confianza', 14, 33);
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text('RECIBO DE COMPRA', 130, 16);
@@ -158,12 +161,7 @@ export default function SeguimientoPedidoPage({ params }) {
           'S/. ' + parseFloat(item.precio_unitario).toFixed(2),
           'S/. ' + (item.cantidad * item.precio_unitario).toFixed(2),
         ]),
-        headStyles: {
-          fillColor: [37, 99, 235],
-          textColor: 255,
-          fontStyle: 'bold',
-          fontSize: 10,
-        },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', fontSize: 10 },
         bodyStyles: { fontSize: 10, textColor: [30, 30, 30] },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         columnStyles: {
@@ -300,7 +298,7 @@ export default function SeguimientoPedidoPage({ params }) {
           </div>
         )}
 
-        {/* Timeline de seguimiento */}
+        {/* Timeline */}
         {!esCancelado && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
             <h2 className="font-extrabold text-gray-800 mb-6">Estado del pedido</h2>
@@ -342,7 +340,7 @@ export default function SeguimientoPedidoPage({ params }) {
           </div>
         )}
 
-        {/* Productos del pedido */}
+        {/* Productos */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h2 className="font-extrabold text-gray-800 mb-4 flex items-center gap-2">
             <InventoryIcon className="text-blue-400" style={{ fontSize: 20 }} />
