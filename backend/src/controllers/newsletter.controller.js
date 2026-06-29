@@ -4,7 +4,6 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FRONTEND = process.env.FRONTEND_URL || 'https://shopwise-olive.vercel.app';
-const LOGO_URL = 'https://res.cloudinary.com/dhygsnf3f/image/upload/v1782753767/logo_cicc59.png';
 
 const suscribir = async (req, res) => {
   const { email } = req.body;
@@ -28,19 +27,17 @@ const suscribir = async (req, res) => {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <!-- HEADER -->
         <tr>
-          <td style="background:#ffffff;padding:32px 40px 24px;text-align:center;border-bottom:3px solid #2563eb;">
-            <img src="${LOGO_URL}" alt="Shopwise" width="160" style="display:block;margin:0 auto;" />
+          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:40px;text-align:center;">
+            <h1 style="color:#ffffff;font-size:28px;font-weight:900;margin:0 0 6px;letter-spacing:2px;">SHOPWISE</h1>
+            <p style="color:#bfdbfe;font-size:13px;margin:0;">Tu tienda de confianza</p>
           </td>
         </tr>
-        <tr>
-          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:28px 40px;text-align:center;">
-            <h2 style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 6px;">¡Bienvenido a Shopwise! 🎉</h2>
-            <p style="color:#bfdbfe;font-size:13px;margin:0;">Tu tienda de confianza en Peru</p>
-          </td>
-        </tr>
+        <!-- BODY -->
         <tr>
           <td style="padding:40px 40px 32px;">
+            <h2 style="color:#1e293b;font-size:22px;font-weight:700;margin:0 0 12px;">¡Gracias por suscribirte! 🎉</h2>
             <p style="color:#64748b;font-size:15px;line-height:1.6;margin:0 0 24px;">Ahora eres parte de la comunidad Shopwise. A partir de hoy recibirás:</p>
             <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:24px;">
               <p style="margin:0 0 12px;color:#334155;font-size:14px;font-weight:600;">🏷️ Ofertas exclusivas antes que nadie</p>
@@ -55,8 +52,10 @@ const suscribir = async (req, res) => {
             <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Si no te suscribiste a Shopwise, puedes ignorar este correo.</p>
           </td>
         </tr>
+        <!-- FOOTER -->
         <tr>
-          <td style="background:#f1f5f9;padding:20px 40px;text-align:center;">
+          <td style="background:#f1f5f9;padding:24px 40px;text-align:center;">
+            <p style="color:#2563eb;font-size:16px;font-weight:800;margin:0 0 8px;letter-spacing:1px;">SHOPWISE</p>
             <p style="color:#94a3b8;font-size:12px;margin:0;">© 2026 Shopwise · Todos los derechos reservados</p>
           </td>
         </tr>
@@ -110,17 +109,12 @@ const enviarCampana = async (req, res) => {
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
-        <!-- LOGO -->
+        <!-- HEADER -->
         <tr>
-          <td style="background:#ffffff;padding:32px 40px 24px;text-align:center;border-bottom:3px solid #2563eb;">
-            <img src="${LOGO_URL}" alt="Shopwise" width="160" style="display:block;margin:0 auto;" />
-          </td>
-        </tr>
-
-        <!-- HEADER AZUL -->
-        <tr>
-          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:28px 40px;text-align:center;">
-            <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 6px;">${asunto}</h1>
+          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:40px;text-align:center;">
+            <h1 style="color:#ffffff;font-size:28px;font-weight:900;margin:0 0 16px;letter-spacing:2px;">SHOPWISE</h1>
+            <div style="width:48px;height:2px;background:rgba(255,255,255,0.4);border-radius:99px;margin:0 auto 16px;"></div>
+            <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:0 0 8px;">${asunto}</h2>
             <p style="color:#93c5fd;font-size:12px;margin:0;">${fecha}</p>
           </td>
         </tr>
@@ -177,7 +171,7 @@ const enviarCampana = async (req, res) => {
         <!-- FOOTER -->
         <tr>
           <td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-            <img src="${LOGO_URL}" alt="Shopwise" width="100" style="display:block;margin:0 auto 12px;" />
+            <p style="color:#2563eb;font-size:16px;font-weight:800;margin:0 0 8px;letter-spacing:1px;">SHOPWISE</p>
             <div style="margin-bottom:12px;">
               <a href="${FRONTEND}/explorar" style="color:#3b82f6;font-size:12px;text-decoration:none;margin:0 8px;">Productos</a>
               <span style="color:#e2e8f0;">|</span>
