@@ -4,7 +4,7 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FRONTEND = process.env.FRONTEND_URL || 'https://shopwise-olive.vercel.app';
-const LOGO_URL = `${FRONTEND}/logo.png`;
+const LOGO_URL = 'https://res.cloudinary.com/dhygsnf3f/image/upload/v1782753767/logo_cicc59.png';
 
 const suscribir = async (req, res) => {
   const { email } = req.body;
