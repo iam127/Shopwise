@@ -25,7 +25,7 @@ export default function ExplorarPage() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [testimonios, setTestimonios] = useState([]);
-  const [statsPublicas, setStatsPublicas] = useState({ totalProductos: 0, totalClientes: 0, ratingPromedio: 0, totalRatings: 0 });
+  const [statsPublicas, setStatsPublicas] = useState(null);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [showSugerencias, setShowSugerencias] = useState(false);
@@ -160,7 +160,7 @@ export default function ExplorarPage() {
             {[
               { num: productos.length + '+', label: 'Productos' },
               { num: categorias.length + '', label: 'Categorias' },
-              { num: statsPublicas.totalRatings > 0 ? String(statsPublicas.ratingPromedio) : 'N/A', label: 'Valoracion' },
+              { num: statsPublicas?.totalRatings > 0 ? String(statsPublicas.ratingPromedio) : 'N/A', label: 'Valoracion' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-2xl font-extrabold text-white">{stat.num}</p>
