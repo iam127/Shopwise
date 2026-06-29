@@ -1,18 +1,7 @@
 const db = require('../db/db');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FRONTEND = process.env.FRONTEND_URL || 'https://shopwise-olive.vercel.app';
 const LOGO_URL = `${FRONTEND}/logo.png`;
@@ -27,8 +16,8 @@ const suscribir = async (req, res) => {
     }
     await db.query('INSERT INTO newsletter (email) VALUES ($1)', [email]);
 
-    await transporter.sendMail({
-      from: `"Shopwise" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: 'Shopwise <onboarding@resend.dev>',
       to: email,
       subject: '¡Bienvenido a Shopwise! 🎉',
       html: `
@@ -104,16 +93,15 @@ const enviarCampana = async (req, res) => {
     const fecha = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
     const mensajeHtml = mensaje.replace(/\n/g, '<br>');
 
-    await transporter.sendMail({
-      from: `"Shopwise" <${process.env.EMAIL_USER}>`,
-      bcc: emails,
+    await resend.emails.send({
+      from: 'Shopwise <onboarding@resend.dev>',
+      to: emails,
       subject: asunto,
       html: `
 <!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>${asunto}</title></head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
-
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
@@ -196,7 +184,6 @@ const enviarCampana = async (req, res) => {
       </table>
     </td></tr>
   </table>
-
 </body>
 </html>
       `,
