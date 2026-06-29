@@ -29,14 +29,18 @@ const suscribir = async (req, res) => {
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
         <tr>
-          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:40px;text-align:center;">
-            <img src="${LOGO_URL}" alt="Shopwise" width="160" style="display:block;margin:0 auto 12px;filter:brightness(0) invert(1);" />
-            <p style="color:#bfdbfe;font-size:13px;margin:0;">Tu tienda de confianza</p>
+          <td style="background:#ffffff;padding:32px 40px 24px;text-align:center;border-bottom:3px solid #2563eb;">
+            <img src="${LOGO_URL}" alt="Shopwise" width="160" style="display:block;margin:0 auto;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:28px 40px;text-align:center;">
+            <h2 style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 6px;">¡Bienvenido a Shopwise! 🎉</h2>
+            <p style="color:#bfdbfe;font-size:13px;margin:0;">Tu tienda de confianza en Peru</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px 40px 32px;">
-            <h2 style="color:#1e293b;font-size:22px;font-weight:700;margin:0 0 12px;">¡Gracias por suscribirte! 🎉</h2>
             <p style="color:#64748b;font-size:15px;line-height:1.6;margin:0 0 24px;">Ahora eres parte de la comunidad Shopwise. A partir de hoy recibirás:</p>
             <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:24px;">
               <p style="margin:0 0 12px;color:#334155;font-size:14px;font-weight:600;">🏷️ Ofertas exclusivas antes que nadie</p>
@@ -106,12 +110,17 @@ const enviarCampana = async (req, res) => {
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
-        <!-- HEADER -->
+        <!-- LOGO -->
         <tr>
-          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:40px;text-align:center;">
-            <img src="${LOGO_URL}" alt="Shopwise" width="160" style="display:block;margin:0 auto 16px;filter:brightness(0) invert(1);" />
-            <div style="width:48px;height:2px;background:rgba(255,255,255,0.4);border-radius:99px;margin:0 auto 16px;"></div>
-            <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0 0 8px;line-height:1.3;">${asunto}</h1>
+          <td style="background:#ffffff;padding:32px 40px 24px;text-align:center;border-bottom:3px solid #2563eb;">
+            <img src="${LOGO_URL}" alt="Shopwise" width="160" style="display:block;margin:0 auto;" />
+          </td>
+        </tr>
+
+        <!-- HEADER AZUL -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:28px 40px;text-align:center;">
+            <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 6px;">${asunto}</h1>
             <p style="color:#93c5fd;font-size:12px;margin:0;">${fecha}</p>
           </td>
         </tr>
@@ -158,7 +167,7 @@ const enviarCampana = async (req, res) => {
             <!-- CTA -->
             <div style="text-align:center;margin-bottom:24px;">
               <a href="${FRONTEND}/explorar"
-                style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,0.35);">
+                style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;">
                 Ver productos y ofertas →
               </a>
             </div>
@@ -168,7 +177,7 @@ const enviarCampana = async (req, res) => {
         <!-- FOOTER -->
         <tr>
           <td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-            <img src="${LOGO_URL}" alt="Shopwise" width="100" style="display:block;margin:0 auto 12px;opacity:0.5;" />
+            <img src="${LOGO_URL}" alt="Shopwise" width="100" style="display:block;margin:0 auto 12px;" />
             <div style="margin-bottom:12px;">
               <a href="${FRONTEND}/explorar" style="color:#3b82f6;font-size:12px;text-decoration:none;margin:0 8px;">Productos</a>
               <span style="color:#e2e8f0;">|</span>
