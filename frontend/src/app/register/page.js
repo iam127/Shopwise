@@ -27,7 +27,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Panel izquierdo con imagen */}
       <div
         className="hidden lg:flex w-1/2"
         style={{
@@ -37,7 +36,6 @@ export default function RegisterPage() {
         }}
       />
 
-      {/* Panel derecho */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 overflow-y-auto">
         <div className="w-full max-w-md py-6">
           <div className="text-center mb-8">
@@ -52,10 +50,8 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Nombre */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
               <input
                 type="text"
                 placeholder="Ingresa tu nombre completo"
@@ -66,9 +62,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
               <input
                 type="email"
                 placeholder="Ingresa tu correo electrónico"
@@ -79,9 +74,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Contraseña */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
               <input
                 type="password"
                 placeholder="Ingresa tu contraseña"
@@ -92,30 +86,22 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Teléfono */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono
-                <span className="text-gray-400 font-normal ml-1">(opcional)</span>
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
               <input
                 type="tel"
-                placeholder="Ej: +51 999 999 999"
+                placeholder="Ingresa tu número de teléfono"
                 className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 value={form.telefono}
                 onChange={(e) => setForm({ ...form, telefono: e.target.value })}
               />
             </div>
 
-            {/* Dirección */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Dirección de envío
-                <span className="text-gray-400 font-normal ml-1">(opcional)</span>
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de envío</label>
               <input
                 type="text"
-                placeholder="Ej: Av. Javier Prado 123, Lima"
+                placeholder="Ingresa tu dirección de envío"
                 className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 value={form.direccion}
                 onChange={(e) => setForm({ ...form, direccion: e.target.value })}
